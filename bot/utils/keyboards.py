@@ -1,52 +1,90 @@
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    KeyboardButton,
     ReplyKeyboardMarkup,
-    KeyboardButton
+    Update,
 )
-from bot import *
+
+from bot import CustomContext
+from bot.resources.strings import Strings
+
+
+def _words(update: Update | None = None, context: CustomContext | None = None):
+    if context is not None and hasattr(context, "words"):
+        return context.words
+
+    user_id = (
+        update.effective_chat.id
+        if update and update.effective_chat
+        else None
+    )
+    return Strings(user_id)
+
+
+def _month_variable_name(month: int | str) -> str:
+    month_names = {
+        1: "january",
+        2: "february",
+        3: "march",
+        4: "april",
+        5: "may",
+        6: "june",
+        7: "july",
+        8: "august",
+        9: "september",
+        10: "october",
+        11: "november",
+        12: "december",
+    }
+    return month_names[int(month)]
 
 
 async def _inline_footer_buttons(
-    context: CustomContext,
-    buttons,
+    buttons: list[list[InlineKeyboardButton]],
+    *,
+    update: Update | None = None,
+    context: CustomContext | None = None,
     back=True,
     main_menu=True,
-):
-    new_buttons = []
+) -> list[list[InlineKeyboardButton]]:
+    words = _words(update, context)
+    footer_buttons = []
+
     if back:
-        new_buttons.append(
-            InlineKeyboardButton(text=context.words.back,
-                                 callback_data='back'),
+        footer_buttons.append(
+            InlineKeyboardButton(text=words.back, callback_data="back"),
         )
     if main_menu:
-        new_buttons.append(
-            InlineKeyboardButton(text=context.words.main_menu,
-                                 callback_data='main_menu'),
+        footer_buttons.append(
+            InlineKeyboardButton(
+                text=words.main_menu,
+                callback_data="main_menu",
+            ),
         )
 
-    buttons.append(new_buttons)
+    if footer_buttons:
+        buttons.append(footer_buttons)
+
     return buttons
 
 
 async def select_lang_keyboard():
-    buttons = [Strings.uz_ru]
-    markup = ReplyKeyboardMarkup(
-        buttons, resize_keyboard=True, one_time_keyboard=True)
-    return markup
+    return ReplyKeyboardMarkup(
+        [Strings.uz_ru],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
 
 
 async def settings_keyboard(context: CustomContext):
-
-    buttons = [
+    return [
         [context.words.change_lang],
         [context.words.change_name],
         [context.words.change_phone_number],
         [context.words.change_city],
         [context.words.main_menu],
     ]
-
-    return buttons
 
 
 async def build_keyboard(
@@ -56,22 +94,188 @@ async def build_keyboard(
     back_button=True,
     main_menu_button=True,
 ):
-    # split list by two cols
-    button_list_split = [button_list[i:i + n_cols]
-                         for i in range(0, len(button_list), n_cols)]
-    # add buttons back and main menu
+    button_rows = [
+        button_list[index:index + n_cols]
+        for index in range(0, len(button_list), n_cols)
+    ]
     footer_buttons = []
-    if back_button:
-        footer_buttons.append(
-            context.words.back
-        )
-    if main_menu_button:
-        footer_buttons.append(
-            context.words.main_menu
-        )
-    # add footer buttons if available
-    buttons = button_list_split + \
-        [footer_buttons] if footer_buttons else button_list_split
 
-    reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-    return reply_markup
+    if back_button:
+        footer_buttons.append(context.words.back)
+    if main_menu_button:
+        footer_buttons.append(context.words.main_menu)
+    if footer_buttons:
+        button_rows.append(footer_buttons)
+
+    return ReplyKeyboardMarkup(button_rows, resize_keyboard=True)
+
+
+async def order_years_keyboard(
+    update_or_years,
+    years=None,
+    *,
+    update: Update | None = None,
+    context: CustomContext | None = None,
+):
+    if years is None:
+        years = update_or_years
+    else:
+        update = update_or_years
+
+    inline_buttons = [
+        InlineKeyboardButton(text=str(year), callback_data=f"year_{year}")
+        for year in years
+    ]
+    button_rows = [
+        inline_buttons[index:index + 3]
+        for index in range(0, len(inline_buttons), 3)
+    ]
+    button_rows = await _inline_footer_buttons(
+        button_rows,
+        update=update,
+        context=context,
+        main_menu=False,
+    )
+    return InlineKeyboardMarkup(button_rows) if button_rows else None
+
+
+async def order_months_keyboard(
+    update_or_months,
+    months=None,
+    *,
+    update: Update | None = None,
+    context: CustomContext | None = None,
+):
+    if months is None:
+        months = update_or_months
+    else:
+        update = update_or_months
+
+    words = _words(update, context)
+    inline_buttons = [
+        InlineKeyboardButton(
+            text=getattr(words, _month_variable_name(month)),
+            callback_data=f"month_{month}",
+        )
+        for month in months
+    ]
+    button_rows = [
+        inline_buttons[index:index + 3]
+        for index in range(0, len(inline_buttons), 3)
+    ]
+    button_rows = await _inline_footer_buttons(
+        button_rows,
+        update=update,
+        context=context,
+    )
+    return InlineKeyboardMarkup(button_rows) if button_rows else None
+
+
+async def order_days_keyboard(
+    update_or_days,
+    days=None,
+    *,
+    update: Update | None = None,
+    context: CustomContext | None = None,
+):
+    if days is None:
+        days = update_or_days
+    else:
+        update = update_or_days
+
+    inline_buttons = [
+        InlineKeyboardButton(text=str(day), callback_data=f"day_{day}")
+        for day in days
+    ]
+    button_rows = [
+        inline_buttons[index:index + 4]
+        for index in range(0, len(inline_buttons), 4)
+    ]
+    button_rows = await _inline_footer_buttons(
+        button_rows,
+        update=update,
+        context=context,
+    )
+    return InlineKeyboardMarkup(button_rows) if button_rows else None
+
+
+async def selecting_address_keyboard(
+    update: Update | None = None,
+    context: CustomContext | None = None,
+):
+    words = _words(update, context)
+    inline_buttons = [
+        [
+            InlineKeyboardButton(
+                text=words.search_addresses,
+                switch_inline_query_current_chat="",
+            ),
+        ],
+    ]
+    inline_buttons = await _inline_footer_buttons(
+        inline_buttons,
+        update=update,
+        context=context,
+    )
+    return InlineKeyboardMarkup(inline_buttons)
+
+
+async def request_location_keyboard(
+    update: Update | None = None,
+    context: CustomContext | None = None,
+):
+    words = _words(update, context)
+    return ReplyKeyboardMarkup(
+        [[KeyboardButton(words.send_location, request_location=True)]],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
+async def selecting_address_with_skip_keyboard(
+    update: Update | None = None,
+    context: CustomContext | None = None,
+):
+    words = _words(update, context)
+    inline_buttons = [
+        [
+            InlineKeyboardButton(
+                text=words.search_addresses,
+                switch_inline_query_current_chat="",
+            ),
+        ],
+        [InlineKeyboardButton(text=words.skip, callback_data="skip")],
+    ]
+    inline_buttons = await _inline_footer_buttons(
+        inline_buttons,
+        update=update,
+        context=context,
+    )
+    return InlineKeyboardMarkup(inline_buttons)
+
+
+async def selecting_address_house_keyboard(
+    update: Update | None = None,
+    context: CustomContext | None = None,
+):
+    words = _words(update, context)
+    return ReplyKeyboardMarkup(
+        keyboard=[[words.back, words.skip]],
+        resize_keyboard=True,
+    )
+
+
+async def confirm_order_keyboard(
+    update: Update | None = None,
+    context: CustomContext | None = None,
+):
+    words = _words(update, context)
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [words.confirm],
+            [words.change_point_a],
+            [words.change_point_b],
+            [words.main_menu],
+        ],
+        resize_keyboard=True,
+    )

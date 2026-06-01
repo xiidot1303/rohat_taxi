@@ -12,7 +12,7 @@ from telegram.ext import (
 from bot.resources.conversationList import *
 
 from bot.bot import (
-    main, login, settings
+    main, login, settings, order
 )
 
 exceptions_for_filter_text = (~filters.COMMAND) & (~filters.Text(Strings.main_menu))
@@ -55,8 +55,37 @@ settings_handler = ConversationHandler(
   
 )
 
+order_handler = ConversationHandler(
+    entry_points=[MessageHandler(filters.Text(Strings.let_order), main.ordering)],
+    states={
+        GET_POINT_A: [
+            CallbackQueryHandler(order.get_point_a_query),
+            CommandHandler("start", order.get_point_a),
+            MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_a),
+            MessageHandler(filters.LOCATION, order.get_point_a),
+            ],
+        GET_POINT_A_HOUSE: [MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_a_house)],
+        GET_POINT_B: [
+            CallbackQueryHandler(order.get_point_b_query),
+            CommandHandler("start", order.get_point_b),
+            MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_b),
+            MessageHandler(filters.LOCATION, order.get_point_b),
+            ],
+        GET_POINT_B_HOUSE: [MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_b_house)],
+        CONFIRM_ORDER: [MessageHandler(filters.TEXT & exceptions_for_filter_text, order.confirm_order)],
+        ORDER_PROCESS: [
+            CallbackQueryHandler(order.order_process),
+            MessageHandler(filters.TEXT & exceptions_for_filter_text, order.order_process)
+        ],
+    },
+    fallbacks=[],
+    name='order',
+    persistent=True,
+)
+
 handlers = [
     login_handler,
     settings_handler,
+    order_handler,
     TypeHandler(type=NewsletterUpdate, callback=main.newsletter_update)
 ]

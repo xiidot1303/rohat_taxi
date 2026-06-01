@@ -6,6 +6,7 @@ import html
 from django.db import close_old_connections
 from telegram.error import TimedOut
 import asyncio
+from bot.bot.order import to_the_get_point_a as _to_the_get_point_a
 
 
 async def start(update: Update, context: CustomContext):
@@ -30,17 +31,17 @@ async def settings(update: Update, context: CustomContext):
     await make_button_settings(update, context)
     return ALL_SETTINGS
 
-def ordering(update, context):
-    bot_user = get_object_by_update(update)
+async def ordering(update: Update, context: CustomContext):
+    bot_user = await get_object_by_update(update)
     if bot_user.blocked:
-        update_message_reply_text(update, get_word('you are blocked', update))
+        await update.effective_message.reply_html(update, context.words.you_are_blocked)
         return
     context.user_data['next'] = CONFIRM_ORDER
     context.user_data['dst'] = ''
     context.user_data['dst_street'] = ''
     context.user_data['dst_house'] = ''
     context.user_data['src_house'] = ''
-    return _to_the_get_point_a(update, context)
+    return await _to_the_get_point_a(update, context)
 
 def order_history(update, context):
     bot_user = get_user_by_update(update)

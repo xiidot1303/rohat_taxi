@@ -115,8 +115,8 @@ class ScatClient:
         self,
         *,
         phone: str,
-        src: AddressKind,
-        dst: AddressKind,
+        src: AddressKind | None,
+        dst: AddressKind | None,
         src_street: str | None = None,
         src_house: str | None = None,
         dst_street: str | None = None,
@@ -167,12 +167,15 @@ class ScatClient:
     @staticmethod
     def _location_payload(
         prefix: Literal["src", "dst"],
-        kind: AddressKind,
+        kind: AddressKind | None,
         street: str | None,
         house: str | None,
         lat: float | str | None,
         lon: float | str | None,
     ) -> dict[str, Any]:
+        if not kind:
+            return {}
+
         if kind == "location":
             if lat is None or lon is None:
                 raise ValueError(
@@ -263,8 +266,8 @@ async def get_streets_api(city_id: int | str) -> Any:
 
 async def calculate_order_pre_cost_api(
     phone: str,
-    src: AddressKind,
-    dst: AddressKind,
+    src: AddressKind | None,
+    dst: AddressKind | None,
     src_street: str | None = None,
     src_house: str | None = None,
     dst_street: str | None = None,

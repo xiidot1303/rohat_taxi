@@ -194,6 +194,8 @@ class Strings:
 
     confirm = ["Tasdiqlash ✅", "Подтвердить ✅"]
 
+    skip = ["O'tkazib yuborish", "Пропустить"]
+
     change_point_a = ["🅰️ Manzilni o'zgartirish", "Изменить адрес 🅰️"]
 
     change_point_b = ["🅱️ Borish manzilingizni o'zgartirish", "Изменить точку поездки 🅱️"]
@@ -325,4 +327,3 @@ class Strings:
         "🧑🏻‍💻 Admin tomonidan xabar:\n\n{}\n\nXabarga javob qaytarish uchun <u>Fikr qoldirish 📨</u> bo'limiga kiring", 
         "🧑🏻‍💻 Сообщение от администратора:\n\n{}\n\nНажмите кнопку <u>Оставить отзыв 📨</u>, чтобы отправить ответ"
         ]
-
