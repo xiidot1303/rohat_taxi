@@ -1,5 +1,5 @@
 import re
-
+from bot.bot import main_menu
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -88,7 +88,7 @@ async def all_settings(update: Update, context: CustomContext):
         user = await get_object_by_update(update)
         prompt = await message.reply_text(
             context.words.select_lang,
-            reply_markup=ReplyKeyboardRemove(remove_keyboard=True),
+            reply_markup=ReplyKeyboardRemove(),
         )
         await prompt.delete()
         await context.bot.send_message(
@@ -236,3 +236,8 @@ async def city_settings(update: Update, context: CustomContext):
     await user.asave(update_fields=["city"])
     await update_message_reply_text(update, context.words.changed_your_city)
     return await _show_settings_menu(update, context)
+
+
+async def start(update: Update, context: CustomContext):
+    await main_menu(update, context)
+    return ConversationHandler.END
