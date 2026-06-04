@@ -1,6 +1,7 @@
 from asgiref.sync import sync_to_async
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from app.models import City
 
 class Bot_user(models.Model):
     user_id = models.BigIntegerField(null=True)
@@ -14,17 +15,13 @@ class Bot_user(models.Model):
     ]
     lang = models.IntegerField(null=True, blank=True, choices=LANG_CHOICES, default=0, verbose_name='Язык')
     date = models.DateTimeField(db_index=True, null=True, auto_now_add=True, blank=True, verbose_name='Дата регистрации')
-    city = models.ForeignKey(
-        'app.City', null=True, blank=True, on_delete=models.PROTECT, 
-        related_name='bot_user_city', verbose_name='Город'
-        )
+    city_id = models.IntegerField(null=True, blank=True, verbose_name='ID города')
     blocked = models.BooleanField(default=False)
     last_chat = models.DateTimeField(null=True, blank=True)
 
     @property
-    @sync_to_async
-    def get_city(self):
-        return self.city
+    async def get_city(self):
+        return await City.objects.aget(pk=self.city_id)
 
     def __str__(self) -> str:
         try:

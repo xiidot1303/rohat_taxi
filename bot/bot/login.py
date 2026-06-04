@@ -132,7 +132,7 @@ async def get_city(update: Update, context: CustomContext):
         await update_message_reply_text(update, context.words.incorrect_city)
         return GET_CITY
 
-    bot_user.city = city
+    bot_user.city_id = city.pk
     await bot_user.asave()
     await main_menu(update, context)
     return ConversationHandler.END
