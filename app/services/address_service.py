@@ -31,11 +31,16 @@ async def cities_all() -> list[City]:
 
 
 async def get_or_create_street(title: str, city: City) -> Street:
-    street, _ = await Street.objects.aget_or_create(
+    title = str(title).strip()
+    street, created = await Street.objects.aget_or_create(
         title=title,
-        title_normalized=transliterate(title),
         city=city,
+        defaults={"title_normalized": transliterate(title)},
     )
+    if not created and not street.title_normalized:
+        street.title_normalized = transliterate(title)
+        await street.asave(update_fields=["title_normalized"])
+
     return street
 
 
@@ -43,19 +48,36 @@ async def bulk_get_or_create_streets(
     titles: Iterable[str],
     city: City,
 ) -> int:
-    created_or_found = 0
-    seen_titles: set[str] = set()
+    unique_titles = {
+        str(title).strip()
+        for title in titles
+        if str(title).strip()
+    }
+    if not unique_titles:
+        return 0
 
-    for title in titles:
-        normalized_title = str(title).strip()
-        if not normalized_title or normalized_title in seen_titles:
-            continue
+    existing_titles = {
+        title async for title in Street.objects.filter(
+            city=city,
+            title__in=unique_titles,
+        ).values_list("title", flat=True)
+    }
+    missing_titles = unique_titles - existing_titles
+    if not missing_titles:
+        return 0
 
-        await get_or_create_street(normalized_title, city)
-        seen_titles.add(normalized_title)
-        created_or_found += 1
-
-    return created_or_found
+    await Street.objects.abulk_create(
+        [
+            Street(
+                title=title,
+                title_normalized=transliterate(title),
+                city=city,
+            )
+            for title in missing_titles
+        ],
+        ignore_conflicts=True,
+    )
+    return len(missing_titles)
 
 
 async def get_street_by_pk(pk: int) -> Street:
