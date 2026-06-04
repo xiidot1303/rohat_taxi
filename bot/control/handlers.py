@@ -12,7 +12,7 @@ from telegram.ext import (
 from bot.resources.conversationList import *
 
 from bot.bot import (
-    main, login, settings, order
+    main, login, settings, order, search
 )
 
 exceptions_for_filter_text = (~filters.COMMAND) & (~filters.Text(Strings.main_menu))
@@ -60,7 +60,6 @@ order_handler = ConversationHandler(
     states={
         GET_POINT_A: [
             CallbackQueryHandler(order.get_point_a_query),
-            CommandHandler("start", order.get_point_a),
             MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_a),
             MessageHandler(filters.LOCATION, order.get_point_a),
             ],
@@ -78,7 +77,9 @@ order_handler = ConversationHandler(
             MessageHandler(filters.TEXT & exceptions_for_filter_text, order.order_process)
         ],
     },
-    fallbacks=[],
+    fallbacks=[
+        CommandHandler("start", order.start),
+    ],
     name='order',
     persistent=True,
 )
@@ -87,5 +88,6 @@ handlers = [
     login_handler,
     settings_handler,
     order_handler,
+    InlineQueryHandler(search.get_inline_query),
     TypeHandler(type=NewsletterUpdate, callback=main.newsletter_update)
 ]

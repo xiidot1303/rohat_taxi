@@ -39,6 +39,10 @@ sed -i "s/<csrf_trusted_origins>/$domain/g" ".env"
 createdb $project_title
 
 
+psql $project_title <<EOF
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+EOF
+
 python manage.py migrate --skip-checks
 python manage.py makemigrations app
 python manage.py makemigrations bot

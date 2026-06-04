@@ -252,7 +252,7 @@ async def get_point_a(update: Update, context: CustomContext):
             "src": "address",
             "src_street": street.title or street_title,
             "src_house": "",
-            "service_id": street.city.city_id,
+            "service_id": (await street.get_city).city_id,
         },
     )
     return await _to_the_confirm_order(update, context)
@@ -373,3 +373,10 @@ async def order_process(update: Update, context: CustomContext):
 
     await bot_delete_message(update, context)
     return ORDER_PROCESS
+
+
+async def start(update: Update, context: CustomContext):
+    # remove inline buttons
+    await remove_inline_keyboards_from_last_msg(update, context)
+    await main_menu(update, context)
+    return ConversationHandler.END

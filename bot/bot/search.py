@@ -1,54 +1,25 @@
 from django.db.models import Q
 from bot.bot import *
-from transliterate import translit
+from app.services.address_service import search_streets_by_title_similarity
 
-def get_inline_query(update, context):
+
+async def get_inline_query(update: Update, context: CustomContext):
     text = update.inline_query.query
-    text_ru = translit(text, 'ru')
-    try:
-        text_en = translit(text, reversed=True)
-    except:
-        text_en = text
-    text_en = regexing_en(text_en)
-    text_ru = regexing_ru(text_ru)
-    bot_user = get_object_by_user_id(update.inline_query.from_user.id)
-    streets = filter_streets_by_title_regex(bot_user.city, text_en, text_ru, text)[:100]
+
+    bot_user = await get_object_by_user_id(update.effective_user.id)
+    streets = await search_streets_by_title_similarity(await bot_user.get_city, text)
     article = [
-        inlinequeryresultarticle(
+        await inlinequeryresultarticle(
             obj.title, 
-            description=address_description_for_query_string(update, obj.city.title),
+            description=await address_description_for_query_string(update, (await obj.get_city).title),
             title_id=obj.pk
             ) 
-            for obj in streets
+            async for obj in streets[:100]
     ]
     if not article:
         article = [
-            inlinequeryresultarticle(get_word('not found', chat_id=update.inline_query.from_user.id))
+            await inlinequeryresultarticle(context.words.not_found)
         ]
     
-    update_inline_query_answer(update, article)
+    await update_inline_query_answer(update, article)
 
-
-def regexing_en(text):
-    list_couples = [
-        'ao', 'xh', 'ie', 'qk', 'cs', 'jy'
-    ]
-
-    for i in list_couples:
-        text = text.replace(i[0], f'({i[0]}|{i[1]})')
-        text = text.replace(i[1], f'({i[0]}|{i[1]})')
-        text = text.replace(f'{i[0]}|({i[0]}|{i[1]})', f'{i[0]}|{i[1]}')
-
-    return text
-
-def regexing_ru(text):
-    list_couples = [
-        'ао', 'её', 'ыи', 'юу', 'щш', ['л', 'ль']
-    ]
-
-    for i in list_couples:
-        text = text.replace(i[0], f'({i[0]}|{i[1]})')
-        text = text.replace(i[1], f'({i[0]}|{i[1]})')
-        text = text.replace(f'{i[0]}|({i[0]}|{i[1]})', f'{i[0]}|{i[1]}')
-
-    return text

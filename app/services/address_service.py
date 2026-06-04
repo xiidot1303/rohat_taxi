@@ -4,9 +4,11 @@ from typing import Iterable
 
 from django.db.models import Q, QuerySet
 from django.shortcuts import aget_object_or_404
+from django.contrib.postgres.search import TrigramSimilarity
 
 from app.models import City, Street
 from app.utils import *
+from asgiref.sync import sync_to_async
 
 
 async def get_or_create_city(title: str, city_id: int) -> City:
@@ -48,16 +50,13 @@ async def bulk_get_or_create_streets(
     titles: Iterable[str],
     city: City,
 ) -> int:
-    unique_titles = {
-        str(title).strip()
-        for title in titles
-        if str(title).strip()
-    }
+    unique_titles = {str(title).strip() for title in titles if str(title).strip()}
     if not unique_titles:
         return 0
 
     existing_titles = {
-        title async for title in Street.objects.filter(
+        title
+        async for title in Street.objects.filter(
             city=city,
             title__in=unique_titles,
         ).values_list("title", flat=True)
@@ -90,15 +89,9 @@ def build_streets_title_query(
     text_ru: str,
     text: str,
 ) -> QuerySet[Street]:
-    streets = (
-        Street.objects.filter(city=city)
-        if city
-        else Street.objects.all()
-    )
+    streets = Street.objects.filter(city=city) if city else Street.objects.all()
     return streets.filter(
-        Q(title__iregex=text_en)
-        | Q(title__iregex=text_ru)
-        | Q(title__icontains=text)
+        Q(title__iregex=text_en) | Q(title__iregex=text_ru) | Q(title__icontains=text)
     )
 
 
@@ -114,3 +107,16 @@ async def filter_streets_by_title_regex(
 
 async def get_city_by_title(title: str) -> City | None:
     return await City.objects.filter(title=title).afirst()
+
+
+@sync_to_async
+def search_streets_by_title_similarity(city: City, text: str) -> QuerySet[Street]:
+    title_norm = transliterate(text)
+    query = Street.objects.filter(city__pk=city.pk)
+
+    result = (
+        query.annotate(similarity=TrigramSimilarity("title_normalized", title_norm))
+        .filter(similarity__gt=0.1)
+        .order_by("-similarity")
+    )
+    return result

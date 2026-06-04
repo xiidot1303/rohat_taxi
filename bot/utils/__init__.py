@@ -12,14 +12,15 @@ async def split_text_and_text_id(msg):
     return msg.split('<>?')
 
 async def get_last_msg_and_markup(context):
-    return await context.user_data['last_msg'], await context.user_data['last_markup'] if 'last_markup' in context.user_data else None
+    return context.user_data['last_msg'], context.user_data['last_markup'] if 'last_markup' in context.user_data else None
 
 async def remove_inline_keyboards_from_last_msg(update, context):
     try:
         last_msg, markup = await get_last_msg_and_markup(context)
         await bot_edit_message_reply_markup(update, context, last_msg.message_id)
         return True
-    except:
+    except Exception as e:
+        print(e)
         return None
 
 async def is_group(update):

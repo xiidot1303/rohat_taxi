@@ -1,4 +1,5 @@
 from django.db import models
+from asgiref.sync import sync_to_async
 
 class Language(models.Model):
     user_ip = models.CharField(null=True, blank=False, max_length=32)
@@ -60,7 +61,12 @@ class Street(models.Model):
     title = models.CharField(max_length = 255, null=True, blank=False, verbose_name='Название')
     title_normalized = models.CharField(max_length = 255, null=True, blank=False)
     city = models.ForeignKey('app.City', blank=False, on_delete=models.PROTECT, verbose_name='Город')
-        
+
+    @property
+    @sync_to_async
+    def get_city(self) -> City:
+        return self.city
+
     def __str__(self) -> str:
         return self.title
     

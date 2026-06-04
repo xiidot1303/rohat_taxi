@@ -1,3 +1,4 @@
+from asgiref.sync import sync_to_async
 from django.db import models
 from django.core.validators import FileExtensionValidator
 
@@ -19,6 +20,11 @@ class Bot_user(models.Model):
         )
     blocked = models.BooleanField(default=False)
     last_chat = models.DateTimeField(null=True, blank=True)
+
+    @property
+    @sync_to_async
+    def get_city(self):
+        return self.city
 
     def __str__(self) -> str:
         try:
