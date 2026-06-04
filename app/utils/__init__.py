@@ -123,3 +123,19 @@ class DictToClass:
     def __repr__(self):
         # This will allow a readable representation of the object when printed
         return f"{self.__class__.__name__}({self.__dict__})"
+
+
+CYRILLIC_TO_LATIN = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g',
+    'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'j',
+    'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k',
+    'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+    'п': 'p', 'р': 'r', 'с': 's', 'т': 't',
+    'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 's',
+    'ч': 'ch', 'ш': 'sh', 'щ': 'sh',
+    'ъ': '', 'ы': 'i', 'ь': '',
+    'э': 'e', 'ю': 'yu', 'я': 'ya',
+}
+
+def transliterate(text: str) -> str:
+    return ''.join(CYRILLIC_TO_LATIN.get(c, c) for c in text.lower())

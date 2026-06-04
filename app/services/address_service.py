@@ -6,6 +6,7 @@ from django.db.models import Q, QuerySet
 from django.shortcuts import aget_object_or_404
 
 from app.models import City, Street
+from app.utils import *
 
 
 async def get_or_create_city(title: str, city_id: int) -> City:
@@ -32,6 +33,7 @@ async def cities_all() -> list[City]:
 async def get_or_create_street(title: str, city: City) -> Street:
     street, _ = await Street.objects.aget_or_create(
         title=title,
+        title_normalized=transliterate(title),
         city=city,
     )
     return street

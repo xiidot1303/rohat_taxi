@@ -58,6 +58,7 @@ class City(models.Model):
 
 class Street(models.Model):
     title = models.CharField(max_length = 255, null=True, blank=False, verbose_name='Название')
+    title_normalized = models.CharField(max_length = 255, null=True, blank=False)
     city = models.ForeignKey('app.City', blank=False, on_delete=models.PROTECT, verbose_name='Город')
         
     def __str__(self) -> str:
