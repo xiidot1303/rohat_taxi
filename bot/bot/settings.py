@@ -232,8 +232,8 @@ async def city_settings(update: Update, context: CustomContext):
         return CITY_SETTINGS
 
     user = await get_object_by_update(update)
-    user.city = city
-    await user.asave(update_fields=["city"])
+    user.city_id = city.pk
+    await user.asave(update_fields=["city_id"])
     await update_message_reply_text(update, context.words.changed_your_city)
     return await _show_settings_menu(update, context)
 
