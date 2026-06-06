@@ -66,8 +66,16 @@ class ScatClient:
             request_payload.update(payload)
 
         async def send(session: aiohttp.ClientSession) -> dict[str, Any]:
-            request = session.get if method == "get" else session.post
-            kwargs = {"params" if method == "get" else "json": request_payload}
+            if method == "get":
+                kwargs = {"params": request_payload}
+                request = session.get
+            else:
+                kwargs = {
+                    "params": self._base_payload(),
+                    "data": request_payload
+                }
+                request = session.post
+            print(f"SCAT API request to {endpoint} with payload: {kwargs}")
             async with request(self._url(endpoint), **kwargs) as response:
                 response.raise_for_status()
                 return await self._decode_response(response)
@@ -183,9 +191,9 @@ class ScatClient:
             return {f"{prefix}_lat": lat, f"{prefix}_lon": lon}
 
         if kind == "address":
-            if not street or not house:
+            if not street:
                 raise ValueError(
-                    f"{prefix}_street and {prefix}_house "
+                    f"{prefix}_street "
                     "are required for address",
                 )
             return {f"{prefix}_street": street, f"{prefix}_house": house}

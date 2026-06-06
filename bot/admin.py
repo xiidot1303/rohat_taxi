@@ -2,25 +2,15 @@ from django.contrib import admin
 from bot.models import *
 from django.utils.html import format_html
 from django.urls import reverse
+from unfold.admin import ModelAdmin, TabularInline
 
-class Bot_userAdmin(admin.ModelAdmin):
-    def get_list_display(self, request):
-        if request.user.is_superuser:
-            list_display = ['name', 'username', 'phone', 'date', 'edit_button']
-        else:
-            list_display = ['name', 'username', 'phone', 'date']
-        return list_display
+class Bot_userAdmin(ModelAdmin):
+    list_display = ['name', 'username', 'phone', 'date']
     search_fields = ['name', 'username', 'phone']
     list_filter = ['date']
-    list_display_links = None
-
-    def edit_button(self, obj):
-        change_url = reverse('admin:bot_bot_user_change', args=[obj.id])
-        return format_html('<a class="btn btn-primary" href="{}"><i class="fas fa-edit"></i></a>', change_url)
-    edit_button.short_description = 'Действие'
 
 
-class MesageAdmin(admin.ModelAdmin):
+class MesageAdmin(ModelAdmin):
     list_display = ['bot_users_name', 'small_text', 'open_photo', 'open_video', 'open_file', 'date']
     list_display_links = None
     fieldsets = (
