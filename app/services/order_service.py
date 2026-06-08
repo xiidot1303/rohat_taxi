@@ -1,5 +1,5 @@
 from app.models import Order
-from app.services.postgresql_service import *
+# from app.services.postgresql_service import *
 from app.services.scat_service import *
 
 def filter_years_of_client_orders(bot_user):
