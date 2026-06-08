@@ -7,7 +7,7 @@ from django.contrib.auth.views import (
 )
 
 from app.views import (
-    main
+    main, callback
 )
 
 urlpatterns = [
@@ -22,6 +22,9 @@ urlpatterns = [
 
     # files
     re_path(r'^files/(?P<path>.*)$', main.get_file),
+
+    # api
+    path('cheque-info', callback.cheque_info),
 
 
 ]

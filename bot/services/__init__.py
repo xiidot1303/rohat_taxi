@@ -34,3 +34,8 @@ async def get_object_by_user_id(user_id):
 async def get_object_by_update(update: Update):
     obj = await Bot_user.objects.aget(user_id=update.effective_user.id)
     return obj
+
+
+def get_user_by_phone(phone: str) -> Bot_user | None:
+    user = Bot_user.objects.filter(phone = phone).first()
+    return user
