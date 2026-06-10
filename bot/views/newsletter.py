@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from bot.control.updater import application
-from telegram import Update, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram import Update, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from bot import NewsletterUpdate
 
 
@@ -16,12 +16,15 @@ class NewsletterView(View):
         text = data.get('text')
         inline_buttons = data.get('inline_buttons', [])
         keyboard_buttons = data.get('keyboard_buttons', [])
+        keyboard_remove = data.get('keyboard_remove', False)
         location = data.get('location', None)
         reply_markup = None
         if inline_buttons:
             reply_markup = InlineKeyboardMarkup(inline_buttons)
         elif keyboard_buttons:
             reply_markup = ReplyKeyboardMarkup(keyboard_buttons, resize_keyboard=True)
+        elif keyboard_remove:
+            reply_markup = ReplyKeyboardRemove()
 
         await application.update_queue.put(NewsletterUpdate(
                     user_id=int(user_id),

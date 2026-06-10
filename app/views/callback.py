@@ -16,7 +16,6 @@ def cheque_info(request):
         
         if serializer.is_valid():
             data = serializer.initial_data
-            print(data)
             phone = data['phonenum']
             uuid = data['uuid']
             order_id = data['id']

@@ -34,3 +34,35 @@ class StreetAdmin(ModelAdmin):
     list_display = ("title", "city")
     search_fields = ("title",)
     list_filter = ("city",)
+
+
+@admin.register(Order)
+class OrderAdmin(ModelAdmin):
+    list_display = (
+        "order_id",
+        "user",
+        "status",
+        "src_street",
+        "dst_street",
+        "service_id",
+        "start_time",
+        "end_time",
+    )
+    list_filter = (
+        "status",
+        "service_id",
+        "user",
+        "start_time",
+    )
+    search_fields = (
+        "order_id",
+        "uuid",
+        "src_street",
+        "dst_street",
+        "src_house",
+        "dst_house",
+        "user__name",
+        "user__phone",
+        "user__username",
+    )
+    ordering = ("-start_time",)

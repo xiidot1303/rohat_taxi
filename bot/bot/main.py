@@ -52,7 +52,7 @@ def order_history(update, context):
         msg = bot_send_message(update, context, text, reply_markup=reply_keyboard_remove())
         bot_delete_message(update, context, msg.message_id)
         msg=bot_send_message(update, context, text, reply_markup=reply_markup)
-        context.user_data['last_msg'] = msg
+        context.user_data['last_msg_id'] = msg.message_id
         return GET_YEAR
     else:
         text = get_word('not available orders yet', update)
@@ -127,6 +127,9 @@ async def newsletter_update(update: NewsletterUpdate, context: CustomContext):
             if update.pin_message:
                 await bot.pin_chat_message(chat_id=update.user_id, message_id=message.message_id)
 
+            # set last msg id and reply markup
+            if update.reply_markup:
+                await set_last_msg_and_markup(context, message, update.reply_markup)
             break
         except TimedOut:
             await asyncio.sleep(0.5)

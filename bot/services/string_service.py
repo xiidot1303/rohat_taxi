@@ -82,7 +82,7 @@ async def cheque_info(
     )
 
 
-async def car_info_string(
+def car_info_string(
     chat_id,
     remaining,
     car_phone,

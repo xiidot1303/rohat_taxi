@@ -65,17 +65,18 @@ def send_order_status(phone, data):
     if user := get_user_by_phone(phone):
         order = get_order_by_order_id_without_404(data['id'])
         markup = None
+        keyboard_remove = False
         if status_code == 80:
-            text = Strings(user_id=user.user_id).your_order_is_on_moderation
+            text = Strings(user_id=user.user_id).your_order_is_in_moderation
             
         elif status_code == 95:
             text = Strings(user_id=user.user_id).your_order_is_cancelled
-            # markup = InlineKeyboardMarkup([[
-            #     InlineKeyboardButton(
-            #         text=get_word('main menu', chat_id=user.user_id), 
-            #         callback_data='main_menu'
-            #         )
-            # ]])
+            markup = [
+                [{
+                    "text": Strings(user_id = user.user_id).main_menu, 
+                    "callback_data": 'main_menu'
+                }]
+            ]
         elif status_code == 10:
             text = string_service.car_info_string(
                 user.user_id, data['remaining'], data['car_phone'], 
@@ -86,16 +87,11 @@ def send_order_status(phone, data):
             text = Strings(user_id=user.user_id).driver_is_here
         elif status_code == 4:
             text = Strings(user_id=user.user_id).order_is_in_execution
-            # markup = reply_keyboard_remove()
-            markup = None
+            keyboard_remove = True
 
         if not order:
             markup = None
-        msg = send_newsletter_api(user.user_id, text, inline_buttons=markup)
-        # if markup:
-        #     # save context user_data
-        #     dp.user_data[user.user_id]['last_msg'] = msg
-        #     dp.user_data[user.user_id]['last_markup'] = markup
+        send_newsletter_api(user.user_id, text, inline_buttons=markup, keyboard_remove=keyboard_remove)
         return True
     else:
         return False 

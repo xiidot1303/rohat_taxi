@@ -67,16 +67,10 @@ def get_order_by_id(id):
     return obj
 
 def get_order_by_uuid_without_404(uuid):
-    if orders := Order.objects.filter(uuid=uuid):
-        order = orders[0]
-        return order
-    return None
+    return Order.objects.filter(uuid=uuid).first()
 
 def get_order_by_order_id_without_404(order_id):
-    if orders := Order.objects.filter(order_id=str(order_id)):
-        order = orders[0]
-        return order
-    return None
+    return Order.objects.filter(order_id=str(order_id)).first()
 
 def change_order_status_by_uuid(uuid, order_id, status):
     if order := get_order_by_uuid_without_404(uuid):

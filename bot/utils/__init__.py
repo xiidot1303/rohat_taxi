@@ -1,4 +1,5 @@
 from bot.utils.bot_functions import *
+from bot import CustomContext
 
 async def get_callback_query_data(update):
     data = await update.data
@@ -14,10 +15,11 @@ async def split_text_and_text_id(msg):
 async def get_last_msg_and_markup(context):
     return context.user_data['last_msg'], context.user_data['last_markup'] if 'last_markup' in context.user_data else None
 
-async def remove_inline_keyboards_from_last_msg(update, context):
+async def remove_inline_keyboards_from_last_msg(update: Update, context: CustomContext):
     try:
-        last_msg, markup = await get_last_msg_and_markup(context)
-        await bot_edit_message_reply_markup(update, context, last_msg.message_id)
+        last_msg_id = context.user_data.get('last_msg_id')
+        if last_msg_id:
+            await bot_edit_message_reply_markup(update, context, last_msg_id)
         return True
     except Exception as e:
         print(e)
@@ -36,5 +38,5 @@ async def save_and_get_photo(update, context):
     return str(d_photo).replace('files/', '')
 
 async def set_last_msg_and_markup(context, msg, markup=None):
-    context.user_data['last_msg'] = msg
+    context.user_data['last_msg_id'] = msg.message_id
     context.user_data['last_markup'] = markup
