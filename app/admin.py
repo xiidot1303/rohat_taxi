@@ -4,7 +4,7 @@ from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.models import User, Group
 
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline, StackedInline
 from app.models import *
 
 admin.site.unregister(User)
@@ -68,6 +68,14 @@ class OrderAdmin(ModelAdmin):
     ordering = ("-start_time",)
 
 
+class OrderReviewInline(TabularInline):
+    model = OrderReview
+    extra = 0
+    fields = ("rating", "comment")
+    readonly_fields = ("rating", "comment")
+    tab = True
+
+
 @admin.register(Cheque)
 class ChequeAdmin(ModelAdmin):
     list_display = (
@@ -97,4 +105,5 @@ class ChequeAdmin(ModelAdmin):
         "autonum",
         "uuid",
     )
+    inlines = [OrderReviewInline]
     ordering = ("-datetime",)

@@ -73,3 +73,16 @@ class Street(models.Model):
     class Meta:
         verbose_name = "Улица"
         verbose_name_plural = "Улицы"
+
+
+class OrderReview(models.Model):
+    cheque = models.ForeignKey(Cheque, related_name='reviews', on_delete=models.CASCADE, verbose_name="Чек")
+    rating = models.PositiveIntegerField(verbose_name="Рейтинг", choices=[(i, str(i)) for i in range(1, 6)])
+    comment = models.TextField(verbose_name="Комментарий", blank=True)
+
+    class Meta:
+        verbose_name = "Отзыв о заказе"
+        verbose_name_plural = "Отзывы о заказах"
+
+    def __str__(self):
+        return f"Review for Cheque {self.cheque.id}"

@@ -7,7 +7,7 @@ from django.contrib.auth.views import (
 )
 
 from app.views import (
-    main, callback
+    main, callback, review
 )
 
 urlpatterns = [
@@ -25,6 +25,7 @@ urlpatterns = [
 
     # api
     path('cheque-info', callback.cheque_info),
+    path('feedback/<str:order_id>/<str:lang>/', review.feedback_page, name='feedback'),
 
 
 ]
