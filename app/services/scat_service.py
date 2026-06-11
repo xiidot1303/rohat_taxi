@@ -258,6 +258,13 @@ class ScatClient:
             payload={"phone": phone},
         )
         return self._response_body(response).get("bonus", 0)
+    
+    async def order_info(self, uuid: str) -> Any:
+        response = await self._request(
+            "order",
+            payload={"uuid": uuid},
+        )
+        return self._response_body(response)
 
 
 def get_scat_client() -> ScatClient:
@@ -320,3 +327,23 @@ async def cancel_order_api(uuid: str) -> bool:
 
 async def client_bonus_count(phone: str) -> Any:
     return await get_scat_client().client_bonus_count(phone)
+
+async def order_info(uuid: str) -> Any:
+    """
+    Get SCAT order information.
+
+    Returns a dict with fields:
+    - status (int): order status code.
+    - message (str): status message.
+    - driver_id (str | None): driver identifier.
+    - call_sign (str | None): driver call sign (the JSON had `driver_id` twice; use `call_sign`).
+    - start_time (str | None): start datetime in "%Y-%m-%d %H:%M:%S".
+    - remaining_time (int | None): minutes until vehicle arrival.
+    - amount (float | None): order cost.
+    - rate_id (int | None): tariff identifier.
+    - car_brand (str | None)
+    - car_model (str | None)
+    - car_color (str | None)
+    - car_number (str | None)
+    """
+    return await get_scat_client().order_info(uuid)

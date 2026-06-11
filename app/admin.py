@@ -66,3 +66,35 @@ class OrderAdmin(ModelAdmin):
         "user__username",
     )
     ordering = ("-start_time",)
+
+
+@admin.register(Cheque)
+class ChequeAdmin(ModelAdmin):
+    list_display = (
+        "id",
+        "phonenum",
+        "name",
+        "status_code",
+        "street",
+        "house",
+        "amount",
+        "datetime",
+    )
+    list_filter = (
+        "status_code",
+        "brand",
+        "model",
+        "datetime",
+    )
+    search_fields = (
+        "phonenum",
+        "name",
+        "street",
+        "house",
+        "code",
+        "car_phone",
+        "car_firstname",
+        "autonum",
+        "uuid",
+    )
+    ordering = ("-datetime",)

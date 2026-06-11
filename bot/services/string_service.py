@@ -4,6 +4,8 @@ from telegram import Update
 
 from bot import CustomContext
 from bot.resources.strings import Strings
+from bot.models import Bot_user
+from bot.resources.colors import colors_dict
 
 
 def _words(
@@ -35,20 +37,25 @@ def _format_seconds(seconds, words) -> str:
     )
 
 
-def get_color(color, *, update=None, context=None, chat_id=None):
-    return color or ""
+
+def get_color(color, chat_id):
+    user = Bot_user.objects.get(user_id=chat_id)
+
+    if user.lang == 0:
+        result = colors_dict[color] if color in colors_dict else color
+    else:
+        result = color
+    return result
+    
 
 
-async def cheque_info(
+def cheque_info(
     chat_id,
     src,
     dst,
     starttime,
     endtime,
     amount,
-    distance,
-    standtime,
-    waittime,
     street,
     house,
     dststreet,
@@ -56,27 +63,16 @@ async def cheque_info(
     autonum,
     color,
     brand,
-    model,
-    lastname,
-    firstname,
-    phone,
-    taximeter_data,
+    model
 ):
     words = _words(chat_id=chat_id)
-    baggage = taximeter_data.get("margin", "") if taximeter_data else ""
 
     return (
         f"<b>{words.finish_text}</b>\n\n"
         f"<i>{words.point_a}:</i> {src}\n"
         f"<i>{words.point_b}:</i> {dst}\n"
         f"<i>{words.amount}:</i> {amount}\n"
-        f"<i>{words.baggage}:</i> {baggage}\n"
-        f"<i>{words.distance}:</i> {distance} {words.meter}\n"
-        f"<i>{words.standtime}:</i> {_format_seconds(standtime, words)}\n"
-        f"<i>{words.waittime}:</i> {waittime}\n\n"
-        f"{words.driver_info}:\n"
-        f"<i>ℹ️ {words.name}:</i> {lastname} {firstname}\n"
-        f"<i>{words.phone}:</i> {phone}\n"
+        # f"{words.driver_info}:\n"
         f"<i>{words.car}:</i> "
         f"{get_color(color, chat_id=chat_id)} {brand} {model} | {autonum}\n"
     )

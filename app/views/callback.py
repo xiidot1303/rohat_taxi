@@ -32,7 +32,7 @@ def cheque_info(request):
                 serializer.save()
                 # send notification
                 newsletter_service.send_cheque(
-                    phone, data['id']
+                    phone, data['id'], uuid
                 )
                 change_order_status_by_order_id(order_id, data['status_code'])
                 return Response(status=status.HTTP_200_OK)
