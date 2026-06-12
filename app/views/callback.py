@@ -1,4 +1,5 @@
 from django.http import HttpResponse, JsonResponse
+from app.models import Cheque
 from app.serializers import ChequeSerializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
@@ -13,11 +14,11 @@ def cheque_info(request):
     if request.method == 'GET':
         
         serializer = ChequeSerializer(data=request.GET)
-        
         if serializer.is_valid():
+            instance: Cheque = serializer.save()
             data = serializer.initial_data
-            phone = data['phonenum']
-            uuid = data['uuid']
+            phone = instance.phonenum
+            uuid = instance.uuid
             order_id = data['id']
             # check status and send message
             if data['status_code'] in ['80', '95', '10', '11', '4', '1']:
@@ -29,7 +30,6 @@ def cheque_info(request):
                     newsletter_service.send_order_status(phone, data)
 
             elif data['status_code'] == '100':
-                serializer.save()
                 # send notification
                 newsletter_service.send_cheque(
                     phone, data['id'], uuid
