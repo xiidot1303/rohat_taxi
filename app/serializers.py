@@ -16,7 +16,7 @@ class ChequeSerializer(serializers.ModelSerializer):
 
     def validate_id(self, value):
         # For updates (status_code != 1), id must exist in DB
-        status_code = self.initial_data.get('status_code')
+        status_code = int(self.initial_data.get('status_code'))
         if status_code != 1:
             if not Cheque.objects.filter(pk=value).exists():
                 raise serializers.ValidationError("Object with this id does not exist.")
