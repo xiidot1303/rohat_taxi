@@ -37,7 +37,7 @@ class ChequeSerializer(serializers.ModelSerializer):
         return valid
 
     def save(self, **kwargs):
-        status_code = int(self.validated_data.pop('status_code'))
+        status_code = int(self.validated_data.get('status_code'))
         if status_code == 1:
             # CREATE
             return Cheque.objects.create(**self.validated_data)
