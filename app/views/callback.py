@@ -32,7 +32,7 @@ def cheque_info(request):
             elif data['status_code'] == '100':
                 # send notification
                 newsletter_service.send_cheque(
-                    phone, data['id'], uuid
+                    phone, instance
                 )
                 change_order_status_by_order_id(order_id, data['status_code'])
                 return Response(status=status.HTTP_200_OK)

@@ -11,28 +11,29 @@ from app.services import scat_service
 from asgiref.sync import async_to_sync, sync_to_async
 from app.utils import *
 from config import WEBAPP_URL
+from app.models import Cheque, Order
 
 
-def send_cheque(phone, order_id, uuid):
+def send_cheque(phone, cheque: Cheque):
     if user := get_user_by_phone(phone):
-        order_obj = get_order_by_order_id_without_404(order_id)
-        order: dict = async_to_sync(scat_service.order_info)(uuid)
+        order_obj: Order | None = get_order_by_order_id_without_404(cheque.id)
+        # order: dict = async_to_sync(scat_service.order_info)(uuid)
         src = order_obj.src_street if order_obj else ""
         dst = order_obj.dst_street if order_obj else ""
-        starttime = order.get("start_time", "")
+        starttime = order_obj.start_time.strftime("%H:%M") if order_obj else ""
         endtime = datetime.now().strftime("%H:%M")
-        executor_id = order.get("driver_id")
-        amount = order.get("amount", "")
+        # executor_id = order.get("driver_id")
+        amount = cheque.amount
         street = order_obj.src_street if order_obj else ""
         house = order_obj.src_house if order_obj else ""
         dststreet = order_obj.dst_street if order_obj else ""
         dsthouse = order_obj.dst_house if order_obj else ""
 
         # get car info
-        autonum = order.get("car_number", "")
-        color = order.get("car_color", "")
-        brand = order.get("car_brand", "")
-        model = order.get("car_model", "")
+        autonum = cheque.autonum
+        color = cheque.color
+        brand = cheque.brand
+        model = cheque.model
 
         text = string_service.cheque_info(
             user.user_id,
@@ -66,7 +67,7 @@ def send_cheque(phone, order_id, uuid):
                 {
                     "text": Strings(user_id=user.user_id).leave_feedback,
                     "web_app": {
-                        "url": f"{WEBAPP_URL}/feedback/{order_id}/{user.get_lang_display()}"
+                        "url": f"{WEBAPP_URL}/feedback/{cheque.id}/{user.get_lang_display()}"
                     },
                 }
             ]
