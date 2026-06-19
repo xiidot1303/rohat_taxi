@@ -74,7 +74,8 @@ def cheque_info(
         f"<i>{words.amount}:</i> {amount}\n"
         # f"{words.driver_info}:\n"
         f"<i>{words.car}:</i> "
-        f"{get_color(color, chat_id=chat_id)} {brand} {model} | {autonum}\n"
+        f"{get_color(color, chat_id=chat_id)} {brand} {model} | {autonum}\n\n"
+        f"<b>{words.leave_your_feedback}</b>"
     )
 
 

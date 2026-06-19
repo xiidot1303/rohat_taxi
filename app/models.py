@@ -77,7 +77,6 @@ class Street(models.Model):
 
 class OrderReview(models.Model):
     cheque = models.ForeignKey(Cheque, related_name='reviews', on_delete=models.CASCADE, verbose_name="Чек")
-    rating = models.PositiveIntegerField(verbose_name="Рейтинг", choices=[(i, str(i)) for i in range(1, 6)])
     comment = models.TextField(verbose_name="Комментарий", blank=True)
 
     class Meta:
@@ -86,3 +85,23 @@ class OrderReview(models.Model):
 
     def __str__(self):
         return f"Review for Cheque {self.cheque.id}"
+
+class RatingReason(models.Model):
+    text_uz = models.CharField(max_length=32)
+    text_ru = models.CharField(max_length=32)
+
+    class Meta:
+        verbose_name = "Причина оценки"
+        verbose_name_plural = "Причины оценки"
+
+    def __str__(self) -> str:
+        return self.text_ru
+
+class OrderRating(models.Model):
+    cheque = models.ForeignKey(Cheque, null=True, related_name="ratings", on_delete=models.SET_NULL, verbose_name="Чек")
+    reason = models.ForeignKey(RatingReason, null=True, on_delete=models.PROTECT, verbose_name="Причина")
+    rating = models.PositiveIntegerField(verbose_name="Оценка", choices=[(i, str(i)) for i in range(1, 6)])
+
+    class Meta:
+        verbose_name = "Оценка заказа"
+        verbose_name_plural = "Оценки заказа"

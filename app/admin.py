@@ -71,10 +71,16 @@ class OrderAdmin(ModelAdmin):
 class OrderReviewInline(TabularInline):
     model = OrderReview
     extra = 0
-    fields = ("rating", "comment")
-    readonly_fields = ("rating", "comment")
+    fields = ("comment",)
+    readonly_fields = ("comment",)
     tab = True
 
+class OrderRatingInline(TabularInline):
+    model = OrderRating
+    extra = 0
+    fields = ("rating", "reason")
+    readonly_fields = ("rating", "reason")
+    tab = True
 
 @admin.register(Cheque)
 class ChequeAdmin(ModelAdmin):
@@ -105,5 +111,10 @@ class ChequeAdmin(ModelAdmin):
         "autonum",
         "uuid",
     )
-    inlines = [OrderReviewInline]
+    inlines = [OrderReviewInline, OrderRatingInline]
     ordering = ("-datetime",)
+
+
+@admin.register(RatingReason)
+class RatingReasonAdmin(ModelAdmin):
+    list_display = ["text_uz", "text_ru"]

@@ -35,11 +35,9 @@ def feedback_page(request, order_id, lang='ru'):
     texts = TEXTS.get(lang, TEXTS['ru'])
 
     if request.method == 'POST':
-        rating = int(request.POST.get('rating', 0) or 0)
         comment = (request.POST.get('comment', '') or '').strip()
 
-        if 1 <= rating <= 5:
-            OrderReview.objects.create(cheque=cheque, rating=rating, comment=comment)
+        OrderReview.objects.create(cheque=cheque, comment=comment)
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'ok': True, 'message': texts['thanks']})

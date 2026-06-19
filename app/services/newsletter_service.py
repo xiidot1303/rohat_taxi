@@ -61,6 +61,13 @@ def send_cheque(phone, cheque: Cheque):
                     }
                 ]
             ]
+        markup.append([
+            {
+                "text": "⭐️",
+                "callback_data": f"rating-{cheque.id}-{str(i)}",
+            }
+            for i in range(1, 6)
+        ])
 
         markup.append(
             [

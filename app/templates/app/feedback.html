@@ -205,14 +205,14 @@
         {% csrf_token %}
         <input type="hidden" name="rating" id="rating-input" value="5" />
 
-        <div class="rating-box">
+        {% comment %} <div class="rating-box">
           <label class="rating-label" for="rating-input">{{ texts.rating_label }}</label>
           <div class="stars" role="radiogroup" aria-label="Rating">
             {% for i in '12345' %}
               <button type="button" class="star-btn{% if forloop.counter == 5 %} active{% endif %}" data-value="{{ forloop.counter }}" aria-label="{{ forloop.counter }} star">★</button>
             {% endfor %}
           </div>
-        </div>
+        </div> {% endcomment %}
 
         <label class="rating-label" for="comment">{{ texts.label }}</label>
         <textarea id="comment" name="comment" placeholder="{{ texts.placeholder }}"></textarea>

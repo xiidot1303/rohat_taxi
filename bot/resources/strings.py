@@ -327,3 +327,55 @@ class Strings:
         "🧑🏻‍💻 Admin tomonidan xabar:\n\n{}\n\nXabarga javob qaytarish uchun <u>Fikr qoldirish 📨</u> bo'limiga kiring", 
         "🧑🏻‍💻 Сообщение от администратора:\n\n{}\n\nНажмите кнопку <u>Оставить отзыв 📨</u>, чтобы отправить ответ"
         ]
+
+    leave_your_feedback = [
+        "Haydovchi xizmatini baholang va fikringizni qoldiring. " \
+            "Sizning bahoyingiz xizmat sifatini yaxshilashga yordam beradi. 👇",
+        "Оцените работу водителя и оставьте отзыв. " \
+            "Ваша оценка помогает нам улучшать качество сервиса. 👇"
+    ]
+
+    continue_ = [
+        "Davom etish ➡️",
+        "Продолжать ➡️"
+    ]
+
+    select_reason_of_rating = [
+        "😔 Xizmatni past baholaganingiz sababini quyidagi variantlar orasidan belgilang.",
+        "😔 Спасибо за вашу оценку. Пожалуйста, выберите основную причину такой оценки."
+    ]
+
+    rating_compleation = [
+        "✅ Bahoyingiz va fikr-mulohazangiz qabul qilindi. Xizmatimizni yaxshilashga yordam berganingiz uchun rahmat!",
+        "✅ Ваша оценка и отзыв успешно отправлены. Спасибо, что помогаете нам улучшать качество сервиса!"
+    ]
+
+    another = [
+        "Boshqa",
+        "Другой"
+    ]
+
+    _ = [
+        "",
+        ""
+    ]
+
+    _ = [
+        "",
+        ""
+    ]
+
+    _ = [
+        "",
+        ""
+    ]
+
+    _ = [
+        "",
+        ""
+    ]
+
+    _ = [
+        "",
+        ""
+    ]
