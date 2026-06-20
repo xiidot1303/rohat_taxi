@@ -6,7 +6,12 @@ from bot.services.redis_service import get_user_lang
 async def _compleation(update: Update, cheque_id, rating, reason_id=None):
     cheque: Cheque | None = await Cheque.objects.filter(id=cheque_id).afirst()
     reason: RatingReason | None = await RatingReason.objects.filter(id=reason_id).afirst()
-    await OrderRating.objects.acreate(rating=rating, cheque=cheque, reason=reason)
+    bot_user: Bot_user | None = await Bot_user.objects.filter(
+        user_id=update.effective_user.id
+    ).afirst()
+    await OrderRating.objects.acreate(
+        rating=rating, cheque=cheque, reason=reason, user=bot_user
+    )
     _words = Strings(user_id=update.effective_user.id)
 
     text = _words.rating_compleation
@@ -30,7 +35,6 @@ async def _compleation(update: Update, cheque_id, rating, reason_id=None):
         )
     ])
     markup = InlineKeyboardMarkup(buttons)
-
     
     old_text = update.effective_message.text
     text = old_text.replace(_words.select_reason_of_rating, "")

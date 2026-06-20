@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from html import escape
+
 from telegram import Update
 
 from bot import CustomContext
@@ -94,6 +96,83 @@ def car_info_string(
         f"<i>{words.car}</i>: {color} {brand} {model} | {autonum}\n"
         f"<i>{words.arrival_time}</i>: {remaining} {words.minute}\n"
         f"<i>{words.driver}</i>: {car_firstname}, {car_phone}"
+    )
+
+
+def _empty(value):
+    return value or "-"
+
+
+def _bot_user_name(bot_user) -> str:
+    if not bot_user:
+        return "-"
+
+    return bot_user.name or bot_user.firstname or bot_user.username or "-"
+
+
+def _bot_user_profile_link(bot_user) -> str:
+    if not bot_user or not bot_user.user_id:
+        return "-"
+
+    name = (
+        bot_user.name
+        or bot_user.firstname
+        or bot_user.username
+        or str(bot_user.user_id)
+    )
+    return f'<a href="tg://user?id={bot_user.user_id}">{escape(name)}</a>'
+
+
+def _cheque_car_details(cheque) -> str:
+    if not cheque:
+        return "-"
+
+    car_details = [
+        cheque.brand,
+        cheque.model,
+        cheque.color,
+        cheque.autonum,
+    ]
+    return " ".join(part for part in car_details if part) or "-"
+
+
+def order_rating_admin_notification(order_rating, bot_user=None) -> str:
+    cheque = order_rating.cheque
+    reason = order_rating.reason
+
+    return "\n".join(
+        [
+            "Новая оценка заказа",
+            "",
+            f"ID заказа: {escape(str(cheque.id)) if cheque else '-'}",
+            f"Данные автомобиля: {escape(_cheque_car_details(cheque))}",
+            f"Сумма: {escape(str(_empty(cheque.amount))) if cheque else '-'}",
+            f"Пользователь бота: {escape(_bot_user_name(bot_user))}",
+            f"Профиль пользователя: {_bot_user_profile_link(bot_user)}",
+            "ID пользователя: "
+            f"{escape(str(bot_user.user_id)) if bot_user and bot_user.user_id else '-'}",
+            f"Причина: {escape(reason.text_ru) if reason else '-'}",
+            f"Оценка: {order_rating.rating}",
+        ]
+    )
+
+
+def order_review_admin_notification(order_review, bot_user=None) -> str:
+    cheque = order_review.cheque
+
+    return "\n".join(
+        [
+            "Новый отзыв о заказе",
+            "",
+            f"ID заказа: {escape(str(cheque.id)) if cheque else '-'}",
+            f"Данные автомобиля: {escape(_cheque_car_details(cheque))}",
+            f"Сумма: {escape(str(_empty(cheque.amount))) if cheque else '-'}",
+            f"Пользователь бота: {escape(_bot_user_name(bot_user))}",
+            f"Профиль пользователя: {_bot_user_profile_link(bot_user)}",
+            "ID пользователя: "
+            f"{escape(str(bot_user.user_id)) if bot_user and bot_user.user_id else '-'}",
+            f"Отзыв: {escape(_empty(order_review.comment))}",
+        ]
     )
 
 

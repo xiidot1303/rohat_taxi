@@ -10,8 +10,38 @@ from app.services.bot_service import send_newsletter_api
 from app.services import scat_service
 from asgiref.sync import async_to_sync, sync_to_async
 from app.utils import *
-from config import WEBAPP_URL
-from app.models import Cheque, Order
+from config import ADMIN_GROUP_ID, WEBAPP_URL
+from app.models import Cheque, Order, OrderRating, OrderReview
+
+
+def _get_bot_user_from_order_feedback(feedback):
+    if feedback.user:
+        return feedback.user
+
+    if not feedback.cheque or not feedback.cheque.phonenum:
+        return None
+
+    return get_user_by_phone(feedback.cheque.phonenum)
+
+
+def send_order_rating_to_admin_group(order_rating: OrderRating):
+    if not ADMIN_GROUP_ID:
+        return False
+
+    bot_user = _get_bot_user_from_order_feedback(order_rating)
+    text = string_service.order_rating_admin_notification(order_rating, bot_user)
+    send_newsletter_api(ADMIN_GROUP_ID, text)
+    return True
+
+
+def send_order_review_to_admin_group(order_review: OrderReview):
+    if not ADMIN_GROUP_ID:
+        return False
+
+    bot_user = _get_bot_user_from_order_feedback(order_review)
+    text = string_service.order_review_admin_notification(order_review, bot_user)
+    send_newsletter_api(ADMIN_GROUP_ID, text)
+    return True
 
 
 def send_cheque(phone, cheque: Cheque):

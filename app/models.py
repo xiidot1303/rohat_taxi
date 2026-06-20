@@ -76,6 +76,7 @@ class Street(models.Model):
 
 
 class OrderReview(models.Model):
+    user = models.ForeignKey('bot.Bot_user', null=True, blank=True, on_delete=models.SET_NULL)
     cheque = models.ForeignKey(Cheque, related_name='reviews', on_delete=models.CASCADE, verbose_name="Чек")
     comment = models.TextField(verbose_name="Комментарий", blank=True)
 
@@ -98,6 +99,7 @@ class RatingReason(models.Model):
         return self.text_ru
 
 class OrderRating(models.Model):
+    user = models.ForeignKey('bot.Bot_user', null=True, blank=True, on_delete=models.SET_NULL)
     cheque = models.ForeignKey(Cheque, null=True, related_name="ratings", on_delete=models.SET_NULL, verbose_name="Чек")
     reason = models.ForeignKey(RatingReason, null=True, on_delete=models.PROTECT, verbose_name="Причина")
     rating = models.PositiveIntegerField(verbose_name="Оценка", choices=[(i, str(i)) for i in range(1, 6)])
