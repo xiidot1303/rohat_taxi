@@ -68,6 +68,46 @@ class OrderAdmin(ModelAdmin):
     ordering = ("-start_time",)
 
 
+class ChequeAutonumFilter(admin.SimpleListFilter):
+    title = "Госномер авто"
+    parameter_name = "cheque_autonum"
+
+    def lookups(self, request, model_admin):
+        autonums = (
+            Cheque.objects.exclude(autonum__isnull=True)
+            .exclude(autonum="")
+            .order_by("autonum")
+            .values_list("autonum", flat=True)
+            .distinct()
+        )
+        return [(autonum, autonum) for autonum in autonums]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(cheque__autonum=self.value())
+
+        return queryset
+
+
+class ChequeDetailsMixin:
+    @admin.display(description="ID чека", ordering="cheque__id")
+    def cheque_id(self, obj):
+        return obj.cheque_id
+
+    @admin.display(description="Авто", ordering="cheque__autonum")
+    def cheque_car_details(self, obj):
+        if not obj.cheque:
+            return "-"
+
+        car_details = [
+            obj.cheque.brand,
+            obj.cheque.model,
+            obj.cheque.color,
+            obj.cheque.autonum,
+        ]
+        return " ".join(part for part in car_details if part) or "-"
+
+
 class OrderReviewInline(TabularInline):
     model = OrderReview
     extra = 0
@@ -81,6 +121,57 @@ class OrderRatingInline(TabularInline):
     fields = ("rating", "reason")
     readonly_fields = ("rating", "reason")
     tab = True
+
+
+@admin.register(OrderReview)
+class OrderReviewAdmin(ChequeDetailsMixin, ModelAdmin):
+    list_display = (
+        "id",
+        "cheque_id",
+        "cheque_car_details",
+        "user",
+        "comment",
+    )
+    list_filter = (ChequeAutonumFilter, "user")
+    search_fields = (
+        "cheque__id",
+        "cheque__autonum",
+        "cheque__brand",
+        "cheque__model",
+        "cheque__color",
+        "user__name",
+        "user__phone",
+        "user__username",
+        "comment",
+    )
+    autocomplete_fields = ("cheque", "user")
+
+
+@admin.register(OrderRating)
+class OrderRatingAdmin(ChequeDetailsMixin, ModelAdmin):
+    list_display = (
+        "id",
+        "cheque_id",
+        "cheque_car_details",
+        "user",
+        "reason",
+        "rating",
+    )
+    list_filter = (ChequeAutonumFilter, "rating", "reason", "user")
+    search_fields = (
+        "cheque__id",
+        "cheque__autonum",
+        "cheque__brand",
+        "cheque__model",
+        "cheque__color",
+        "user__name",
+        "user__phone",
+        "user__username",
+        "reason__text_ru",
+        "reason__text_uz",
+    )
+    autocomplete_fields = ("cheque", "user", "reason")
+
 
 @admin.register(Cheque)
 class ChequeAdmin(ModelAdmin):
@@ -118,3 +209,4 @@ class ChequeAdmin(ModelAdmin):
 @admin.register(RatingReason)
 class RatingReasonAdmin(ModelAdmin):
     list_display = ["text_uz", "text_ru"]
+    search_fields = ("text_uz", "text_ru")
