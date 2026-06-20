@@ -79,6 +79,7 @@ order_handler = ConversationHandler(
     },
     fallbacks=[
         CommandHandler("start", order.start),
+        MessageHandler(filters.Text(Strings.main_menu), order.start)
     ],
     name='order',
     persistent=True,
