@@ -215,7 +215,6 @@ class ScatClient:
 
     async def create_order(
         self,
-        phone: str,
         token: str,
         service_id: int
     ) -> tuple[bool, str | None]:
@@ -223,7 +222,6 @@ class ScatClient:
             "order",
             method="post",
             payload={
-                "phone": phone,
                 "token": token,
                 "moderation_required": "no",
                 "comment": self._order_comment(),
@@ -319,8 +317,8 @@ async def region_by_coordinates_api(
     return await get_scat_client().region_by_coordinates(lat, lon)
 
 
-async def create_order_api(phone: str, token: str, service_id: int) -> tuple[bool, str | None]:
-    return await get_scat_client().create_order(phone, token, service_id)
+async def create_order_api(token: str, service_id: int) -> tuple[bool, str | None]:
+    return await get_scat_client().create_order(token, service_id)
 
 
 async def cancel_order_api(uuid: str) -> bool:

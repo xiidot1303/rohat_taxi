@@ -180,7 +180,6 @@ async def _to_the_order_process(update: Update, context: CustomContext):
     data = context.user_data
     bot_user = await get_object_by_update(update)
     status, uuid_or_message = await create_order_api(
-        bot_user.phone,
         data.get("token"),
         data.get("service_id")
     )
