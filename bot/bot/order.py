@@ -145,6 +145,7 @@ async def _to_the_get_point_b_house(update: Update, context: CustomContext):
 async def _to_the_confirm_order(update: Update, context: CustomContext):
     data = context.user_data
     bot_user = await get_object_by_update(update)
+    city = await bot_user.get_city
     price, distance, token = await calculate_order_pre_cost_api(
         bot_user.phone,
         data.get("src"),
@@ -180,7 +181,8 @@ async def _to_the_order_process(update: Update, context: CustomContext):
     bot_user = await get_object_by_update(update)
     status, uuid_or_message = await create_order_api(
         bot_user.phone,
-        data["token"],
+        data.get("token"),
+        data.get("service_id")
     )
     if not status:
         await update_message_reply_text(update, uuid_or_message)
@@ -231,8 +233,7 @@ async def get_point_a(update: Update, context: CustomContext):
                 "src_lat": lat,
                 "src_lon": lon,
                 "src_street": _coordinates_text(lat, lon),
-                "src_house": "",
-                "service_id": None,
+                "src_house": ""
             },
         )
         if context.user_data.get("next") == GET_POINT_B:
@@ -251,8 +252,7 @@ async def get_point_a(update: Update, context: CustomContext):
         {
             "src": "address",
             "src_street": street.title or street_title,
-            "src_house": "",
-            "service_id": (await street.get_city).city_id,
+            "src_house": ""
         },
     )
     return await _to_the_confirm_order(update, context)

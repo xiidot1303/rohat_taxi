@@ -11,16 +11,15 @@ from app.utils import *
 from asgiref.sync import sync_to_async
 
 
-async def get_or_create_city(title: str, city_id: int) -> City:
+async def get_or_create_city(title: str, city_id: int, service_id) -> City:
     city, _ = await City.objects.aget_or_create(
-        city_id=city_id,
-        defaults={"title": title},
+        service_id=service_id,
+        defaults={
+            "title": title,
+            "city_id": city_id
+        },
     )
-
-    if city.title != title:
-        city.title = title
-        await city.asave(update_fields=["title"])
-
+    
     return city
 
 

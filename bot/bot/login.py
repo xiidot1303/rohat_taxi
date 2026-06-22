@@ -9,9 +9,7 @@ async def _get_city_titles():
 
 
 async def _get_city_by_title(city_title):
-    async for city in City.objects.filter(title=city_title)[:1]:
-        return city
-    return None
+    return await City.objects.filter(title=city_title).afirst()
 
 
 def _normalize_phone_number(phone_number):

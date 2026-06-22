@@ -37,6 +37,7 @@ async def update_cities_async() -> int:
     for service in services:
         try:
             city_id = service["city_id"]
+            service_id = service["id"]
             title = service["name"]
         except KeyError:
             logger.warning(
@@ -45,7 +46,7 @@ async def update_cities_async() -> int:
             )
             continue
 
-        await get_or_create_city(title, city_id)
+        await get_or_create_city(title, city_id, service_id)
         updated_count += 1
 
     return updated_count

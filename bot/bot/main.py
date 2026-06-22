@@ -33,6 +33,7 @@ async def settings(update: Update, context: CustomContext):
 
 async def ordering(update: Update, context: CustomContext):
     bot_user = await get_object_by_update(update)
+    city: City = await bot_user.get_city
     if bot_user.blocked:
         await update.effective_message.reply_html(update, context.words.you_are_blocked)
         return
@@ -41,6 +42,7 @@ async def ordering(update: Update, context: CustomContext):
     context.user_data['dst_street'] = ''
     context.user_data['dst_house'] = ''
     context.user_data['src_house'] = ''
+    context.user_data['service_id'] = city.service_id
     return await _to_the_get_point_a(update, context)
 
 def order_history(update, context):

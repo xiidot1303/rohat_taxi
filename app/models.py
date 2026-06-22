@@ -53,9 +53,12 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
 
-class City(models.Model):
+class City(models.Model): # Service
     title = models.CharField(max_length = 255, null=True, blank=False, verbose_name='Название')
-    city_id = models.IntegerField(null=True, blank=False, unique=True, verbose_name='ID города в SCAT')
+    service_id = models.IntegerField(null=True, blank=False, unique=True, verbose_name='ID служб в SCAT')
+    city_id = models.IntegerField(null=True, blank=False, verbose_name='ID города в SCAT')
+    is_intercity = models.BooleanField(default=False, verbose_name="Межгород")
+    is_active = models.BooleanField(default=True, verbose_name="Активен")
 
     def __str__(self) -> str:
         return self.title
