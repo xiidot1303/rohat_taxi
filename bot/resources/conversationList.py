@@ -1,4 +1,4 @@
-n = 20
+n = 22
 (
     SELECT_LANG,
     GET_NAME,
@@ -20,5 +20,6 @@ n = 20
     GET_FEEDBACK,
     GET_CITY,
     CITY_SETTINGS,
-
+    GET_PRE_ORDER_DATE,
+    GET_PRE_ORDER_TIME,
 ) = range(0, n)

@@ -34,11 +34,17 @@ async def settings(update: Update, context: CustomContext):
 async def ordering(update: Update, context: CustomContext):
     bot_user = await get_object_by_update(update)
     city: City = await bot_user.get_city
-    if bot_user.blocked:
-        await update.effective_message.reply_html(update, context.words.you_are_blocked)
+    if city is None:
+        await update.effective_message.reply_html(context.words.service_is_not_selected)
         return
-    context.user_data['next'] = CONFIRM_ORDER
-    context.user_data['dst'] = ''
+    if bot_user.blocked:
+        await update.effective_message.reply_html(context.words.you_are_blocked)
+        return
+    
+    context.user_data['ask_point_b'] = True # constant
+    context.user_data['is_intercity'] = city.is_intercity
+    context.user_data['pre_order_datetime_iso'] = None
+    context.user_data['dst'] = None
     context.user_data['dst_street'] = ''
     context.user_data['dst_house'] = ''
     context.user_data['src_house'] = ''

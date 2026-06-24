@@ -7,6 +7,9 @@ from typing import Any, Literal
 import aiohttp
 
 from config import DEBUG, SCAT_API_KEY, SCAT_API_URL
+import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 AddressKind = Literal["location", "address"]
 
@@ -64,18 +67,13 @@ class ScatClient:
         request_payload = self._base_payload()
         if payload:
             request_payload.update(payload)
-
         async def send(session: aiohttp.ClientSession) -> dict[str, Any]:
             if method == "get":
                 kwargs = {"params": request_payload}
                 request = session.get
             else:
-                kwargs = {
-                    "params": self._base_payload(),
-                    "data": request_payload
-                }
+                kwargs = {"params": self._base_payload(), "data": request_payload}
                 request = session.post
-            print(f"SCAT API request to {endpoint} with payload: {kwargs}")
             async with request(self._url(endpoint), **kwargs) as response:
                 response.raise_for_status()
                 return await self._decode_response(response)
@@ -107,8 +105,7 @@ class ScatClient:
             error = data.get("error")
             if isinstance(error, dict) and error.get("message"):
                 raise ScatServiceError(str(error["message"]))
-            raise ScatServiceError(
-                "SCAT API response is missing response body")
+            raise ScatServiceError("SCAT API response is missing response body")
         return body
 
     async def services(self) -> Any:
@@ -134,17 +131,22 @@ class ScatClient:
         dst_lat: float | str | None = None,
         dst_lon: float | str | None = None,
         service_id: int | str | None = None,
+        pre_order_datetime: datetime | None = None,
         retry_attempts: int = DEFAULT_RETRY_ATTEMPTS,
     ) -> ScatOrderPreCost:
         payload: dict[str, Any] = {"phone": phone}
-        payload.update(self._location_payload(
-            "src", src, src_street, src_house, src_lat, src_lon))
-        payload.update(self._location_payload(
-            "dst", dst, dst_street, dst_house, dst_lat, dst_lon))
+        payload["way_points"] = json.dumps(self._way_points_payload(
+            src, dst, src_street, src_house, dst_street, 
+            dst_house, src_lat, src_lon, dst_lat, dst_lon,
+        ), ensure_ascii=False)
 
         if service_id is not None:
             payload["service_id"] = service_id
-
+        
+        if pre_order_datetime:
+            # convert to UTC time zone
+            dt_utc = pre_order_datetime.astimezone(ZoneInfo("UTC"))
+            payload["pre_order_time_utc"] = dt_utc.strftime("%Y-%m-%d %H:%M:%S")
         last_error: Exception | None = None
         for attempt in range(1, retry_attempts + 1):
             try:
@@ -170,35 +172,50 @@ class ScatClient:
                 await asyncio.sleep(DEFAULT_RETRY_DELAY_SECONDS * attempt)
 
         raise ScatServiceError(
-            "Could not calculate SCAT order pre-cost") from last_error
+            "Could not calculate SCAT order pre-cost"
+        ) from last_error
 
     @staticmethod
-    def _location_payload(
-        prefix: Literal["src", "dst"],
-        kind: AddressKind | None,
-        street: str | None,
-        house: str | None,
-        lat: float | str | None,
-        lon: float | str | None,
-    ) -> dict[str, Any]:
-        if not kind:
-            return {}
+    def _way_points_payload(
+        src: AddressKind | None,
+        dst: AddressKind | None,
+        src_street: str | None = None,
+        src_house: str | None = None,
+        dst_street: str | None = None,
+        dst_house: str | None = None,
+        src_lat: float | str | None = None,
+        src_lon: float | str | None = None,
+        dst_lat: float | str | None = None,
+        dst_lon: float | str | None = None,
+    ):
+        way_points = []
 
-        if kind == "location":
-            if lat is None or lon is None:
+        if src == "location":
+            if src_lat is None or src_lon is None:
+                raise ValueError("src_lat and src_lon are required for location")
+            way_points.append({"latitude": src_lat, "longitude": src_lon})
+        elif src == "address":
+            if not src_street:
                 raise ValueError(
-                    f"{prefix}_lat and {prefix}_lon are required for location")
-            return {f"{prefix}_lat": lat, f"{prefix}_lon": lon}
-
-        if kind == "address":
-            if not street:
-                raise ValueError(
-                    f"{prefix}_street "
-                    "are required for address",
+                    "src_street are required for address",
                 )
-            return {f"{prefix}_street": street, f"{prefix}_house": house}
+            way_points.append({"street": src_street, "house": src_house})
 
-        raise ValueError(f"Unsupported {prefix} type: {kind}")
+        if dst == "location":
+            if dst_lat is None or dst_lon is None:
+                raise ValueError("dst_lat and dst_lon are required for location")
+            way_points.append({"latitude": dst_lat, "longitude": dst_lon})
+        elif dst == "address":
+            if not dst_street:
+                raise ValueError(
+                    "dst_street are required for address",
+                )
+            way_points.append({"street": dst_street, "house": dst_house})
+
+        if way_points:
+            return way_points
+        else:
+            raise ValueError(f"Unsupported src, dst type: {src}, {dst}")
 
     async def region_by_coordinates(
         self,
@@ -214,9 +231,7 @@ class ScatClient:
         return self._response_body(response).get("id")
 
     async def create_order(
-        self,
-        token: str,
-        service_id: int
+        self, token: str, service_id: int
     ) -> tuple[bool, str | None]:
         response = await self._request(
             "order",
@@ -225,7 +240,7 @@ class ScatClient:
                 "token": token,
                 "moderation_required": "no",
                 "comment": self._order_comment(),
-                "service_id": service_id
+                "service_id": service_id,
             },
         )
 
@@ -258,7 +273,7 @@ class ScatClient:
             payload={"phone": phone},
         )
         return self._response_body(response).get("bonus", 0)
-    
+
     async def order_info(self, uuid: str) -> Any:
         response = await self._request(
             "order",
@@ -292,6 +307,7 @@ async def calculate_order_pre_cost_api(
     dst_lon: float | str | None = None,
     dst_lat: float | str | None = None,
     service_id: int | str | None = None,
+    pre_order_datetime: datetime | None = None
 ) -> tuple[Any, Any, str]:
     pre_cost = await get_scat_client().calculate_order_pre_cost(
         phone=phone,
@@ -306,6 +322,7 @@ async def calculate_order_pre_cost_api(
         dst_lat=dst_lat,
         dst_lon=dst_lon,
         service_id=service_id,
+        pre_order_datetime=pre_order_datetime
     )
     return pre_cost.as_tuple()
 
@@ -327,6 +344,7 @@ async def cancel_order_api(uuid: str) -> bool:
 
 async def client_bonus_count(phone: str) -> Any:
     return await get_scat_client().client_bonus_count(phone)
+
 
 async def order_info(uuid: str) -> Any:
     """

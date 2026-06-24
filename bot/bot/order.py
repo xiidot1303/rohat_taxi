@@ -11,14 +11,7 @@ from app.services.scat_service import (
     create_order_api,
 )
 from bot.bot import CustomContext, main_menu
-from bot.resources.conversationList import (
-    CONFIRM_ORDER,
-    GET_POINT_A,
-    GET_POINT_A_HOUSE,
-    GET_POINT_B,
-    GET_POINT_B_HOUSE,
-    ORDER_PROCESS,
-)
+from bot.resources.conversationList import *
 from bot.services import get_object_by_update
 from bot.services.string_service import (
     order_details_before_confirmation_string,
@@ -29,21 +22,9 @@ from bot.utils import (
     remove_inline_keyboards_from_last_msg,
     set_last_msg_and_markup,
 )
-from bot.utils.bot_functions import (
-    bot_delete_message,
-    bot_send_and_delete_message,
-    bot_send_chat_action,
-    bot_send_message,
-    reply_keyboard_remove,
-    update_message_reply_text,
-)
-from bot.utils.keyboards import (
-    confirm_order_keyboard,
-    request_location_keyboard,
-    selecting_address_house_keyboard,
-    selecting_address_keyboard,
-    selecting_address_with_skip_keyboard,
-)
+from bot.utils.bot_functions import *
+from bot.utils.keyboards import *
+from app.utils import *
 
 
 def _coordinates_text(lat, lon) -> str:
@@ -85,6 +66,8 @@ async def _create_order_record(bot_user, uuid: str, data: dict) -> Order:
 
 
 async def to_the_get_point_a(update: Update, context: CustomContext):
+    await delete_callback_query_message(update)
+
     location_request_markup = await request_location_keyboard(context=context)
     address_markup = await selecting_address_keyboard(context=context)
 
@@ -94,8 +77,9 @@ async def to_the_get_point_a(update: Update, context: CustomContext):
         context.words.select_point_a,
         location_request_markup,
     )
-    message = await update_message_reply_text(
+    message = await bot_send_message(
         update,
+        context,
         await select_point_a_string(context=context),
         address_markup,
     )
@@ -115,17 +99,13 @@ async def _to_the_get_point_a_house(update: Update, context: CustomContext):
 
 
 async def _to_the_get_point_b(update: Update, context: CustomContext):
+    await delete_callback_query_message(update)
+
     street = context.user_data.get("src_street", "")
     house = context.user_data.get("src_house", "")
     text = await select_point_b_string(street, house, context=context)
     markup = await selecting_address_with_skip_keyboard(context=context)
 
-    await bot_send_and_delete_message(
-        update,
-        context,
-        text,
-        reply_markup=await reply_keyboard_remove(),
-    )
     message = await update_message_reply_text(update, text, markup)
     await set_last_msg_and_markup(context, message, markup)
     return GET_POINT_B
@@ -142,10 +122,42 @@ async def _to_the_get_point_b_house(update: Update, context: CustomContext):
     return GET_POINT_B_HOUSE
 
 
+async def _to_the_get_pre_order_date(update: Update, context: CustomContext):
+    await delete_callback_query_message(update)
+    markup = await next_days_list_keyboard(context)
+    text = context.words.select_pre_order_date
+    message = await update.effective_message.reply_html(text, reply_markup=markup)
+    await set_last_msg_and_markup(context, message, markup)
+    return GET_PRE_ORDER_DATE
+
+
+async def _to_the_get_pre_order_time(update: Update, context: CustomContext):
+    text = context.words.type_pre_order_time
+    markup = InlineKeyboardMarkup([[
+        InlineKeyboardButton(
+            text=context.words.back,
+            callback_data="back"
+        )
+    ]])
+    if query := update.callback_query:
+        message = await query.edit_message_text(text, reply_markup=markup, parse_mode="HTML")
+    else:
+        message = await update.effective_message.reply_html(text, reply_markup=markup)
+    await set_last_msg_and_markup(context, message)
+    return GET_PRE_ORDER_TIME
+
+
 async def _to_the_confirm_order(update: Update, context: CustomContext):
+    await bot_send_chat_action(update, context)
+    await delete_callback_query_message(update)
     data = context.user_data
     bot_user = await get_object_by_update(update)
-    city = await bot_user.get_city
+    pre_order_datetime_iso = context.user_data.get("pre_order_datetime_iso")
+    if pre_order_datetime_iso:
+        pre_order_datetime: datetime = datetime.fromisoformat(pre_order_datetime_iso)
+    else:
+        pre_order_datetime = None
+
     price, distance, token = await calculate_order_pre_cost_api(
         bot_user.phone,
         data.get("src"),
@@ -159,6 +171,7 @@ async def _to_the_confirm_order(update: Update, context: CustomContext):
         data.get("dst_lon"),
         data.get("dst_lat"),
         data.get("service_id"),
+        pre_order_datetime
     )
     text = await order_details_before_confirmation_string(
         data.get("src_street", ""),
@@ -167,9 +180,10 @@ async def _to_the_confirm_order(update: Update, context: CustomContext):
         data.get("dst_house", ""),
         price,
         distance,
+        pre_order_datetime=pre_order_datetime,
         context=context,
     )
-    markup = await confirm_order_keyboard(context=context)
+    markup = await confirm_order_keyboard(context=context, pre_order_datetime=pre_order_datetime)
     message = await update_message_reply_text(update, text, markup)
     context.user_data["token"] = token
     await set_last_msg_and_markup(context, message, markup)
@@ -177,6 +191,7 @@ async def _to_the_confirm_order(update: Update, context: CustomContext):
 
 
 async def _to_the_order_process(update: Update, context: CustomContext):
+    await delete_callback_query_message(update)
     data = context.user_data
     bot_user = await get_object_by_update(update)
     status, uuid_or_message = await create_order_api(
@@ -202,23 +217,6 @@ async def _to_the_order_process(update: Update, context: CustomContext):
     return ORDER_PROCESS
 
 
-async def get_point_a_query(update: Update, context: CustomContext):
-    query = update.callback_query
-    await query.answer()
-
-    if query.data == "back":
-        await bot_delete_message(update, context, query.message.message_id)
-        await main_menu(update, context)
-        return ConversationHandler.END
-
-    if query.data == "main_menu":
-        await bot_delete_message(update, context, query.message.message_id)
-        await main_menu(update, context)
-        return ConversationHandler.END
-
-    return GET_POINT_A
-
-
 async def get_point_a(update: Update, context: CustomContext):
     await bot_send_chat_action(update, context)
     message = update.effective_message
@@ -235,9 +233,12 @@ async def get_point_a(update: Update, context: CustomContext):
                 "src_house": ""
             },
         )
-        if context.user_data.get("next") == GET_POINT_B:
+        if context.user_data.get("is_intercity"):
+            return await _to_the_get_pre_order_date(update, context)
+        elif context.user_data.get("ask_point_b"):
             return await _to_the_get_point_b(update, context)
-        return await _to_the_confirm_order(update, context)
+        else:
+            return await _to_the_confirm_order(update, context)
 
     try:
         street_title, street_id = _message_text_and_street_id(update)
@@ -254,44 +255,46 @@ async def get_point_a(update: Update, context: CustomContext):
             "src_house": ""
         },
     )
-    return await _to_the_confirm_order(update, context)
+    return await _to_the_get_point_a_house(update, context)
 
 
 async def get_point_a_house(update: Update, context: CustomContext):
-    message_text = _message_text(update)
-    if message_text == context.words.back:
-        return await to_the_get_point_a(update, context)
+    if query := update.callback_query:
+        await query.delete_message()
+    else:
+        message_text = _message_text(update)
+        context.user_data["src_house"] = message_text
+        await remove_inline_keyboards_from_last_msg(update, context)
 
-    context.user_data["src_house"] = (
-        "" if message_text == context.words.skip else message_text
-    )
-    if context.user_data.get("next") == GET_POINT_B:
+    if context.user_data.get("is_intercity"):
+        return await _to_the_get_pre_order_date(update, context)
+    elif context.user_data.get("ask_point_b"):
         return await _to_the_get_point_b(update, context)
-    return await _to_the_confirm_order(update, context)
-
-
-async def get_point_b_query(update: Update, context: CustomContext):
-    query = update.callback_query
-    await query.answer()
-
-    if query.data == "back":
-        await bot_delete_message(update, context, query.message.message_id)
-        context.user_data["next"] = GET_POINT_B
-        return await to_the_get_point_a(update, context)
-
-    if query.data == "main_menu":
-        await bot_delete_message(update, context, query.message.message_id)
-        await main_menu(update, context)
-        return ConversationHandler.END
-
-    if query.data == "skip":
-        await bot_delete_message(update, context, query.message.message_id)
-        context.user_data.update(
-            {"dst": "", "dst_street": "", "dst_house": ""},
-        )
+    else:
         return await _to_the_confirm_order(update, context)
 
-    return GET_POINT_B
+
+async def get_pre_order_date(update: Update, context: CustomContext):
+    query = update.callback_query
+    *args, date_ordinal = str(query.data).split("-")
+    context.user_data['pre_order_date_ordinal'] = int(date_ordinal)
+    return await _to_the_get_pre_order_time(update, context)
+
+
+async def get_pre_order_time(update: Update, context: CustomContext):
+    message_text = update.effective_message.text
+    pre_order_time: time | None = parse_time(message_text)
+
+    if pre_order_time is None:
+        await update.effective_message.delete()
+        return
+
+    pre_order_date_ordinal = context.user_data.get('pre_order_date_ordinal')
+    pre_order_date: date = date.fromordinal(int(pre_order_date_ordinal))
+    pre_order_datetime: datetime = datetime.combine(pre_order_date, pre_order_time)
+    context.user_data['pre_order_datetime_iso'] = pre_order_datetime.isoformat()
+    await remove_inline_keyboards_from_last_msg(update, context)
+    return await _to_the_confirm_order(update, context)
 
 
 async def get_point_b(update: Update, context: CustomContext):
@@ -331,33 +334,12 @@ async def get_point_b(update: Update, context: CustomContext):
 
 
 async def get_point_b_house(update: Update, context: CustomContext):
-    message_text = _message_text(update)
-    if message_text == context.words.back:
-        return await _to_the_get_point_b(update, context)
-
-    context.user_data["dst_house"] = (
-        "" if message_text == context.words.skip else message_text
-    )
+    if query := update.callback_query:
+        await query.delete_message()
+    else:
+        message_text = _message_text(update)
+        context.user_data["dst_house"] = message_text
     return await _to_the_confirm_order(update, context)
-
-
-async def confirm_order(update: Update, context: CustomContext):
-    message_text = _message_text(update)
-    if message_text == context.words.confirm:
-        return await _to_the_order_process(update, context)
-
-    if message_text == context.words.change_point_a:
-        context.user_data["next"] = CONFIRM_ORDER
-        return await to_the_get_point_a(update, context)
-
-    if message_text == context.words.change_point_b:
-        return await _to_the_get_point_b(update, context)
-
-    if message_text == context.words.main_menu:
-        await main_menu(update, context)
-        return ConversationHandler.END
-
-    return CONFIRM_ORDER
 
 
 async def order_process(update: Update, context: CustomContext):
@@ -375,7 +357,9 @@ async def order_process(update: Update, context: CustomContext):
 
 
 async def start(update: Update, context: CustomContext):
-    # remove inline buttons
-    await remove_inline_keyboards_from_last_msg(update, context)
+    if query := update.callback_query:
+        await bot_delete_message(update, context, query.message.message_id)
+    else:
+        await remove_inline_keyboards_from_last_msg(update, context)
     await main_menu(update, context)
     return ConversationHandler.END

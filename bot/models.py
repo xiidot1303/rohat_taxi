@@ -20,8 +20,8 @@ class Bot_user(models.Model):
     last_chat = models.DateTimeField(null=True, blank=True)
 
     @property
-    async def get_city(self):
-        return await City.objects.aget(pk=self.city_id)
+    async def get_city(self) -> City | None:
+        return await City.objects.filter(pk=self.city_id).afirst()
 
     def __str__(self) -> str:
         try:

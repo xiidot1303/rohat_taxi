@@ -8,6 +8,7 @@ from telegram import (
 
 from bot import CustomContext
 from bot.resources.strings import Strings
+from datetime import date, timedelta, datetime
 
 
 def _words(update: Update | None = None, context: CustomContext | None = None):
@@ -259,23 +260,52 @@ async def selecting_address_house_keyboard(
     context: CustomContext | None = None,
 ):
     words = _words(update, context)
-    return ReplyKeyboardMarkup(
-        keyboard=[[words.back, words.skip]],
-        resize_keyboard=True,
-    )
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton(
+            text=words.back,
+            callback_data="back"
+        ),
+        InlineKeyboardButton(
+            text=words.skip,
+            callback_data="skip"
+        )
+    ]])
 
 
 async def confirm_order_keyboard(
     update: Update | None = None,
     context: CustomContext | None = None,
+    pre_order_datetime: datetime | None = None
 ):
     words = _words(update, context)
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [words.confirm],
-            [words.change_point_a],
-            [words.change_point_b],
-            [words.main_menu],
+    buttons = [
+        [InlineKeyboardButton(text=words.confirm, callback_data="confirm")],
+        [
+            InlineKeyboardButton(text=words.change_point_a, callback_data="change_point_a"),
+            (
+                InlineKeyboardButton(text=words.change_point_b, callback_data="change_point_b")
+                if not pre_order_datetime else
+                InlineKeyboardButton(text=words.change_pre_order_time, callback_data="change_pre_order_time")
+            )
         ],
-        resize_keyboard=True,
-    )
+        [InlineKeyboardButton(text=words.main_menu, callback_data="main_menu")]
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+async def next_days_list_keyboard(context: CustomContext):
+    today = date.today()
+    buttons = [
+        [InlineKeyboardButton(
+            text=f"{(today + timedelta(days=i)).strftime('%d.%m.%Y')}",
+            callback_data=f"pre_order_date-{(today + timedelta(days=i)).toordinal()}"
+        )]
+        for i in range(4)
+    ]
+    buttons.append([
+        InlineKeyboardButton(
+            text=context.words.back,
+            callback_data="back"
+        )
+    ])
+    return InlineKeyboardMarkup(buttons)

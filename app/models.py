@@ -64,8 +64,8 @@ class City(models.Model): # Service
         return self.title
 
     class Meta:
-        verbose_name = "Города"
-        verbose_name_plural = "Город"
+        verbose_name = "Услуга"
+        verbose_name_plural = "Услуги"
 
 
 class Street(models.Model):

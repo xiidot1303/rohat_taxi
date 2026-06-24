@@ -8,6 +8,7 @@ from bot import CustomContext
 from bot.resources.strings import Strings
 from bot.models import Bot_user
 from bot.resources.colors import colors_dict
+from datetime import datetime
 
 
 def _words(
@@ -211,6 +212,7 @@ async def order_details_before_confirmation_string(
     house_b,
     price,
     distance,
+    pre_order_datetime: datetime | None = None,
     *,
     update: Update | None = None,
     context: CustomContext | None = None,
@@ -224,13 +226,17 @@ async def order_details_before_confirmation_string(
         else ""
     )
 
-    return (
+    result = (
         f"{words.point_a}: {point_a_address}"
         f"{point_b_line}\n"
         f"{words.price}: {price}\n"
-        f"{words.distance}: {distance} {words.meter}\n\n"
-        f"{words.confirm_order}"
+        f"{words.distance}: {distance or "?"} {words.meter}\n"
     )
+    if pre_order_datetime:
+        result += f"{words.pre_order_time}: {pre_order_datetime.strftime("%d.%m.%Y %H:%M")}\n"
+
+    result += f"\n{words.confirm_order}"
+    return result 
 
 
 async def order_history_details_string(

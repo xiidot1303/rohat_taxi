@@ -355,9 +355,29 @@ class Strings:
         "Другой"
     ]
 
-    _ = [
-        "",
-        ""
+    select_pre_order_date = [
+        "🚕 Oldindan buyurtma berish uchun safar sanasi va vaqtini tanlang.",
+        "🚕 Выберите дату для предварительного заказа."
+    ]
+
+    type_pre_order_time = [
+        "🕒 Safar vaqtini <code>HH:MM</code> formatida kiriting. kiriting\nMasalan: <b>09:30</b> yoki <b>18:45</b>",
+        "🕒 Укажите время поездки в формате <code>HH:MM</code>. Например: <b>09:30</b> или <b>18:45</b>"
+    ]
+
+    service_is_not_selected = [
+        "Siz hali xizmatni tanlamadingiz. Buyurtma berish uchun sozlamalar orqali xizmatni tanlang.",
+        "Вы еще не выбрали услугу. Пожалуйста, выберите услугу в настройках, чтобы оформить заказ."
+    ]
+
+    pre_order_time = [
+        "🕔 Buyurtma berish vaqti",
+        "🕔 Время предварительного заказа"
+    ]
+
+    change_pre_order_time = [
+        "🔄 Vaqtni o'zgartirish",
+        "🔄 Изменить время"
     ]
 
     _ = [

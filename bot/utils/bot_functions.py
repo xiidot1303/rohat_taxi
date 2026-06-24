@@ -244,3 +244,11 @@ async def change_conversation_state(
     user_key = (context._user_id, context._user_id)
     await context.application.persistence.update_conversation(conv_name, user_key, new_state)  # type: ignore
     return
+
+
+async def delete_callback_query_message(update: Update):
+    if query := update.callback_query:
+        try:
+            await query.delete_message()
+        except:
+            pass

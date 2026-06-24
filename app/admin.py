@@ -26,7 +26,7 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
 
 @admin.register(City)
 class CityAdmin(ModelAdmin):
-    list_display = ("title", "is_intercity", "is_active", "city_id")
+    list_display = ("title", "is_intercity", "is_active", "city_id", "service_id")
     search_fields = ("title", "city_id")
 
 @admin.register(Street)

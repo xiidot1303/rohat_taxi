@@ -1,4 +1,5 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
+from typing import Optional
 import requests
 import json
 import aiohttp
@@ -26,6 +27,37 @@ async def time_now():
 async def today():
     today = date.today()
     return today
+
+
+def parse_time(text: str) -> Optional[time]:
+    """
+    Parse a string like '9:45', '09:45', '21:50' into a datetime.time object.
+
+    Returns None if the input is not a valid HH:MM time string.
+    """
+    if not text or not isinstance(text, str):
+        return None
+
+    text = text.strip()
+    parts = text.split(":")
+
+    if len(parts) != 2:
+        return None
+
+    hour_str, minute_str = parts
+
+    if not hour_str.isdigit() or not minute_str.isdigit():
+        return None
+
+    hour = int(hour_str)
+    minute = int(minute_str)
+
+    if not (0 <= hour <= 23):
+        return None
+    if not (0 <= minute <= 59):
+        return None
+
+    return time(hour=hour, minute=minute)
 
 
 async def send_request(
