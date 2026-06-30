@@ -380,9 +380,9 @@ class Strings:
         "🔄 Изменить время"
     ]
 
-    _ = [
-        "",
-        ""
+    get_driver_location = [
+        "🗺 Haydovchi koordinatalarini olish",
+        "🗺 Получить координаты водителя"
     ]
 
     _ = [

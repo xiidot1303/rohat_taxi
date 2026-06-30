@@ -145,6 +145,13 @@ def send_order_status(phone, data):
                 data["color"],
                 data["autonum"],
             )
+            if order:
+                markup = [[
+                    {
+                        "text": Strings(user_id=user.user_id).get_driver_location,
+                        "callback_data": f"get_driver_location-{order.pk}"
+                    }
+                ]]
         elif status_code == 11:
             text = Strings(user_id=user.user_id).driver_is_here
         elif status_code == 4:

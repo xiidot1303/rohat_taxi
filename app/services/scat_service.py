@@ -280,6 +280,14 @@ class ScatClient:
             payload={"uuid": uuid},
         )
         return self._response_body(response)
+    
+    async def get_driver_coordinates(self, driver_id: str | int) -> Any:
+        response = await self._request(
+            "drivers",
+            payload={"code": driver_id}
+        )
+        r_body = self._response_body(response)
+        return r_body.get("lat"), r_body.get("lon")
 
 
 def get_scat_client() -> ScatClient:
@@ -353,8 +361,7 @@ async def order_info(uuid: str) -> Any:
     Returns a dict with fields:
     - status (int): order status code.
     - message (str): status message.
-    - driver_id (str | None): driver identifier.
-    - call_sign (str | None): driver call sign (the JSON had `driver_id` twice; use `call_sign`).
+    - driver_id (str | None): driver call sign.
     - start_time (str | None): start datetime in "%Y-%m-%d %H:%M:%S".
     - remaining_time (int | None): minutes until vehicle arrival.
     - amount (float | None): order cost.
@@ -365,3 +372,7 @@ async def order_info(uuid: str) -> Any:
     - car_number (str | None)
     """
     return await get_scat_client().order_info(uuid)
+
+
+async def get_driver_coordinates(driver_id: str | int) -> tuple[int, int]:
+    return await get_scat_client().get_driver_coordinates(driver_id)

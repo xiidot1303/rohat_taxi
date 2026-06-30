@@ -12,7 +12,7 @@ from telegram.ext import (
 from bot.resources.conversationList import *
 
 from bot.bot import (
-    main, login, settings, order, search, rating
+    main, login, settings, order, search, rating, driver_location
 )
 
 exceptions_for_filter_text = (~filters.COMMAND) & (~filters.Text(Strings.main_menu))
@@ -110,6 +110,7 @@ order_handler = ConversationHandler(
 get_rating_handler = CallbackQueryHandler(rating.get_rating, pattern="^rating")
 continue_rating_handler = CallbackQueryHandler(rating.continue_rating, pattern="^continue_rating")
 select_rating_reason_handler = CallbackQueryHandler(rating.select_rating_reason, pattern="^select_rating_reason")
+driver_location_handler = CallbackQueryHandler(driver_location.get_driver_location, pattern="^get_driver_location")
 
 handlers = [
     login_handler,
@@ -118,6 +119,7 @@ handlers = [
     get_rating_handler,
     continue_rating_handler,
     select_rating_reason_handler,
+    driver_location_handler,
     InlineQueryHandler(search.get_inline_query),
     TypeHandler(type=NewsletterUpdate, callback=main.newsletter_update)
 ]
