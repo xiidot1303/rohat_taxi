@@ -31,6 +31,7 @@ async def settings(update: Update, context: CustomContext):
     await make_button_settings(update, context)
     return ALL_SETTINGS
 
+
 async def ordering(update: Update, context: CustomContext):
     bot_user = await get_object_by_update(update)
     city: City = await bot_user.get_city
@@ -50,37 +51,6 @@ async def ordering(update: Update, context: CustomContext):
     context.user_data['src_house'] = ''
     context.user_data['service_id'] = city.service_id
     return await _to_the_get_point_a(update, context)
-
-def order_history(update, context):
-    bot_user = get_user_by_update(update)
-    years = filter_years_of_client_orders(bot_user)
-    if years: 
-        reply_markup = order_years_keyboard(update, years)
-        text = get_word('select year of order', update)
-        msg = bot_send_message(update, context, text, reply_markup=reply_keyboard_remove())
-        bot_delete_message(update, context, msg.message_id)
-        msg=bot_send_message(update, context, text, reply_markup=reply_markup)
-        context.user_data['last_msg_id'] = msg.message_id
-        return GET_YEAR
-    else:
-        text = get_word('not available orders yet', update)
-        update_message_reply_text(update, text)
-        main_menu(update, context)
-
-def bonus(update, context):
-    phone = get_object_by_update(update).phone
-    balance = client_bonus_count(phone)
-    text = get_word('your balance', update).format(balance)
-    update_message_reply_text(update, text)
-
-def leave_feedback(update, context):
-    text = get_word('write your feedback', update)
-    markup = reply_keyboard_markup([[get_word('main menu', update)]])
-    msg = update_message_reply_text(update, text, markup)
-    set_last_msg_and_markup(context, msg, markup)
-    return GET_FEEDBACK
-
-
 
 
 
