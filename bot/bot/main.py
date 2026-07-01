@@ -42,7 +42,7 @@ async def ordering(update: Update, context: CustomContext):
         await update.effective_message.reply_html(context.words.you_are_blocked)
         return
     
-    context.user_data['ask_point_b'] = True # constant
+    context.user_data['ask_point_b'] = False # constant
     context.user_data['is_intercity'] = city.is_intercity
     context.user_data['pre_order_datetime_iso'] = None
     context.user_data['dst'] = None
