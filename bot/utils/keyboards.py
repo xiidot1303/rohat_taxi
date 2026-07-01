@@ -217,6 +217,7 @@ async def selecting_address_keyboard(
         inline_buttons,
         update=update,
         context=context,
+        back=False
     )
     return InlineKeyboardMarkup(inline_buttons)
 
