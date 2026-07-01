@@ -385,9 +385,9 @@ class Strings:
         "🗺 Получить координаты водителя"
     ]
 
-    _ = [
-        "",
-        ""
+    feedback_too_long = [
+        "❌ Fikr-mulohazangiz juda uzun. Iltimos, 2500 ta belgidan kamroq yozing.",
+        "❌ Ваш отзыв слишком длинный. Пожалуйста, введите меньше 2500 символов."
     ]
 
     _ = [

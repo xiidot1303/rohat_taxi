@@ -108,7 +108,14 @@ def _bot_user_name(bot_user) -> str:
     if not bot_user:
         return "-"
 
-    return bot_user.name or bot_user.firstname or bot_user.username or "-"
+    return bot_user.username or bot_user.name or bot_user.firstname or "-"
+
+
+def _bot_user_phone(bot_user) -> str:
+    if not bot_user:
+        return "-"
+
+    return bot_user.phone or "-"
 
 
 def _bot_user_profile_link(bot_user) -> str:
@@ -143,13 +150,14 @@ def order_rating_admin_notification(order_rating, bot_user=None) -> str:
 
     return "\n".join(
         [
-            "Новая оценка заказа",
+            "<b>Новая оценка заказа</b>",
             "",
             f"ID заказа: {escape(str(cheque.id)) if cheque else '-'}",
             f"Данные автомобиля: {escape(_cheque_car_details(cheque))}",
             f"Сумма: {escape(str(_empty(cheque.amount))) if cheque else '-'}",
             f"Пользователь бота: {escape(_bot_user_name(bot_user))}",
             f"Профиль пользователя: {_bot_user_profile_link(bot_user)}",
+            f"Телефон: {escape(_bot_user_phone(bot_user))}",
             "ID пользователя: "
             f"{escape(str(bot_user.user_id)) if bot_user and bot_user.user_id else '-'}",
             f"Причина: {escape(reason.text_ru) if reason else '-'}",
@@ -163,16 +171,32 @@ def order_review_admin_notification(order_review, bot_user=None) -> str:
 
     return "\n".join(
         [
-            "Новый отзыв о заказе",
+            "<b>Новый отзыв о заказе</b>",
             "",
             f"ID заказа: {escape(str(cheque.id)) if cheque else '-'}",
             f"Данные автомобиля: {escape(_cheque_car_details(cheque))}",
             f"Сумма: {escape(str(_empty(cheque.amount))) if cheque else '-'}",
             f"Пользователь бота: {escape(_bot_user_name(bot_user))}",
             f"Профиль пользователя: {_bot_user_profile_link(bot_user)}",
+            f"Телефон: {escape(_bot_user_phone(bot_user))}",
             "ID пользователя: "
             f"{escape(str(bot_user.user_id)) if bot_user and bot_user.user_id else '-'}",
-            f"Отзыв: {escape(_empty(order_review.comment))}",
+            f"Отзыв: <i>{escape(_empty(order_review.comment))}</i>",
+        ]
+    )
+
+
+def feedback_admin_notification(feedback, bot_user=None) -> str:
+    return "\n".join(
+        [
+            "<b>Новый отзыв</b>",
+            "",
+            f"Пользователь бота: {escape(_bot_user_name(bot_user))}",
+            f"Профиль пользователя: {_bot_user_profile_link(bot_user)}",
+            f"Телефон: {escape(_bot_user_phone(bot_user))}",
+            "ID пользователя: "
+            f"{escape(str(bot_user.user_id)) if bot_user and bot_user.user_id else '-'}",
+            f"Отзыв: <i>{escape(_empty(feedback.message))}</i>",
         ]
     )
 

@@ -12,7 +12,8 @@ from telegram.ext import (
 from bot.resources.conversationList import *
 
 from bot.bot import (
-    main, login, settings, order, search, rating, driver_location
+    main, login, settings, order, search, 
+    rating, driver_location, feedback
 )
 
 exceptions_for_filter_text = (~filters.COMMAND) & (~filters.Text(Strings.main_menu))
@@ -107,6 +108,21 @@ order_handler = ConversationHandler(
     persistent=True,
 )
 
+feedback_handler = ConversationHandler(
+    entry_points=[MessageHandler(filters.Text(Strings.leave_feedback), feedback.leave_feedback)],
+    states={
+        GET_FEEDBACK: [
+            MessageHandler(filters.TEXT & exceptions_for_filter_text, feedback.get_feedback)
+        ]
+    },
+    fallbacks=[
+        CommandHandler("start", feedback.start),
+        MessageHandler(filters.Text(Strings.main_menu), feedback.start)
+    ],
+    name='feedback',
+    persistent=True,
+)
+
 get_rating_handler = CallbackQueryHandler(rating.get_rating, pattern="^rating")
 continue_rating_handler = CallbackQueryHandler(rating.continue_rating, pattern="^continue_rating")
 select_rating_reason_handler = CallbackQueryHandler(rating.select_rating_reason, pattern="^select_rating_reason")
@@ -120,6 +136,7 @@ handlers = [
     continue_rating_handler,
     select_rating_reason_handler,
     driver_location_handler,
+    feedback_handler,
     InlineQueryHandler(search.get_inline_query),
     TypeHandler(type=NewsletterUpdate, callback=main.newsletter_update)
 ]

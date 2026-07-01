@@ -118,3 +118,16 @@ class OrderRating(models.Model):
     class Meta:
         verbose_name = "Оценка заказа"
         verbose_name_plural = "Оценки заказа"
+
+
+class Feedback(models.Model):
+    bot_user = models.ForeignKey(
+        'bot.Bot_user', null=True, blank=True, related_name='feedbacks',
+        on_delete=models.SET_NULL, verbose_name='Пользователь'
+        )
+    message = models.TextField(null=True, blank=True, max_length=2500, verbose_name='Сообщение')
+    datetime = models.DateTimeField(db_index=True, null=True, auto_now_add=True, blank=True, verbose_name='Дата')
+
+    class Meta:
+        verbose_name = "Отзыв"
+        verbose_name_plural = "Отзывы"

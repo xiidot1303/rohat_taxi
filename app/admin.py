@@ -210,3 +210,11 @@ class ChequeAdmin(ModelAdmin):
 class RatingReasonAdmin(ModelAdmin):
     list_display = ["text_uz", "text_ru"]
     search_fields = ("text_uz", "text_ru")
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(ModelAdmin):
+    list_display = ["id", "bot_user", "message", "datetime"]
+    list_filter = ["datetime"]
+    search_fields = ["bot_user__name", "bot_user__phone", "message"]
+    ordering = ("-datetime",)
