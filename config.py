@@ -23,6 +23,7 @@ WEBHOOK_URL: str = os.environ.get("WEBHOOK_URL") or ""
 NEWSLETTER_URL: str = os.environ.get("NEWSLETTER_URL") or ""
 WEBAPP_URL: str = os.environ.get("WEBAPP_URL") or ""
 ADMIN_GROUP_ID: str = os.environ.get("ADMIN_GROUP_ID") or ""
+ADMIN_USER_ID: str = os.environ.get("ADMIN_USER_ID") or ""
 
 # Scat
 SCAT_API_KEY = os.environ.get("SCAT_API_KEY") or ""

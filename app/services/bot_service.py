@@ -1,6 +1,8 @@
 from celery import shared_task
 import requests
-from config import NEWSLETTER_URL
+from config import NEWSLETTER_URL, ADMIN_USER_ID
+import html
+import traceback
 
 
 @shared_task
@@ -27,3 +29,25 @@ def send_newsletter_api(
         "location": location or None
     }
     requests.post(API_URL, json=data)
+
+
+def send_exception_to_admin(heading: str, exc: Exception, **kwargs):
+    message = heading + "\n"
+    for key, value in kwargs.items():
+        message += f"<pre>{key}: {html.escape(str(value))}</pre>\n"
+    
+    tb_list = traceback.format_exception(
+        None, exc, exc.__traceback__)
+    tb_string = "".join(tb_list)
+
+    error_message = f"<pre>{html.escape(tb_string)}</pre>"
+
+    send_newsletter_api.delay(
+        bot_user_id=ADMIN_USER_ID,
+        text=message
+    )
+
+    send_newsletter_api.delay(
+        bot_user_id=ADMIN_USER_ID,
+        text=error_message,
+    )
