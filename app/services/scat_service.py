@@ -199,7 +199,7 @@ class ScatClient:
                 raise ValueError(
                     "src_street are required for address",
                 )
-            way_points.append({"street": src_street, "house": src_house})
+            way_points.append({"name": src_street, "street": src_street, "house": src_house})
 
         if dst == "location":
             if dst_lat is None or dst_lon is None:
@@ -210,7 +210,7 @@ class ScatClient:
                 raise ValueError(
                     "dst_street are required for address",
                 )
-            way_points.append({"street": dst_street, "house": dst_house})
+            way_points.append({"name": dst_street, "street": dst_street, "house": dst_house})
 
         if way_points:
             return way_points
