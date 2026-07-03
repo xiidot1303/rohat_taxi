@@ -1,5 +1,7 @@
 from bot.utils.bot_functions import *
 from bot import CustomContext
+import httpx
+from config import YANDEX_GEOCODER_API_KEY
 
 async def get_callback_query_data(update):
     data = await update.data
@@ -40,3 +42,24 @@ async def save_and_get_photo(update, context):
 async def set_last_msg_and_markup(context, msg, markup=None):
     context.user_data['last_msg_id'] = msg.message_id
     context.user_data['last_markup'] = markup
+
+
+async def get_address_by_coordinates(lat: float, lon: float) -> str | None:
+    try:
+        url = "https://geocode-maps.yandex.ru/1.x/"
+        params = {
+            "apikey": YANDEX_GEOCODER_API_KEY,
+            "geocode": f"{lon},{lat}",
+            "format": "json",
+            "lang": "ru_RU",
+            "results": 1,
+        }
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(url, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+
+        members = data["response"]["GeoObjectCollection"]["featureMember"]
+        return members[0]["GeoObject"]["metaDataProperty"]["GeocoderMetaData"]["text"] if members else None
+    except Exception as e:
+        return None

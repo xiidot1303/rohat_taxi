@@ -3,6 +3,8 @@ from typing import Optional
 import requests
 import json
 import aiohttp
+from yandex_geocoder import Client
+from config import YANDEX_GEOCODER_API_KEY
 
 
 async def get_user_ip(request):
@@ -58,6 +60,15 @@ def parse_time(text: str) -> Optional[time]:
         return None
 
     return time(hour=hour, minute=minute)
+
+
+def get_address_by_coordinates(lat, lon):
+    try:
+        client = Client(YANDEX_GEOCODER_API_KEY)
+        location = client.address(lon, lat)
+        return location
+    except:
+        return ""
 
 
 async def send_request(

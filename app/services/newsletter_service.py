@@ -12,6 +12,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 from app.utils import *
 from config import ADMIN_GROUP_ID, WEBAPP_URL
 from app.models import Cheque, Order, OrderRating, OrderReview, Feedback
+from celery import shared_task
 
 
 def _get_bot_user_from_order_feedback(feedback):
@@ -54,8 +55,10 @@ def send_feedback_to_admin_group(feedback: Feedback):
     return True
 
 
-def send_cheque(phone, cheque: Cheque):
+@shared_task
+def send_cheque(phone, cheque_id: int):
     if user := get_user_by_phone(phone):
+        cheque = Cheque.objects.get(id=cheque_id)
         order_obj: Order | None = get_order_by_order_id_without_404(cheque.id)
         # order: dict = async_to_sync(scat_service.order_info)(uuid)
         src = order_obj.src_street if order_obj else ""
@@ -125,6 +128,7 @@ def send_cheque(phone, cheque: Cheque):
         return False
 
 
+@shared_task
 def send_order_status(phone, data):
     status_code = int(data["status_code"])
     if user := get_user_by_phone(phone):

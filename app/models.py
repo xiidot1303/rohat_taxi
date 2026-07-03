@@ -48,6 +48,7 @@ class Order(models.Model):
     service_id = models.IntegerField(null=True, blank=True, verbose_name="ID услуги")
     start_time = models.DateTimeField(db_index=True, null=True, auto_now_add=True, blank=True, verbose_name="Время начала")
     end_time = models.DateTimeField(null=True, blank=True, verbose_name="Время завершения")
+    address = models.CharField(null=True, blank=True, max_length=255, verbose_name="Адрес")
 
     class Meta:
         verbose_name = "Заказ"

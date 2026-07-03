@@ -27,14 +27,16 @@ def cheque_info(request):
                 else:
                     change_order_status_by_order_id(order_id, data['status_code'])
                     # send notification
-                    newsletter_service.send_order_status(phone, data)
+                    newsletter_service.send_order_status.delay(phone, data)
 
             elif data['status_code'] == '100':
                 # send notification
-                newsletter_service.send_cheque(
-                    phone, instance
+                newsletter_service.send_cheque.delay(
+                    phone, instance.id
                 )
                 change_order_status_by_order_id(order_id, data['status_code'])
+                # set address to order
+                set_address_to_order.delay(order_id)
                 return Response(status=status.HTTP_200_OK)
 
             return Response(status=status.HTTP_202_ACCEPTED)

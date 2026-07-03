@@ -195,10 +195,11 @@ async def reply_keyboard_remove():
     return markup
 
 
-async def inlinequeryresultarticle(title, description=None, title_id=None):
-    message_content = title
-    if title_id:
-        message_content = "{}<>?{}".format(title, title_id)
+async def inlinequeryresultarticle(title, description=None, title_id=None, message_content=None):
+    if message_content is None:
+        message_content = title
+        if title_id:
+            message_content = "{}<>?{}".format(title, title_id)
 
     article = InlineQueryResultArticle(
         id=str(uuid4()),

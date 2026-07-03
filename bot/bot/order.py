@@ -21,6 +21,7 @@ from bot.services.string_service import (
 from bot.utils import (
     remove_inline_keyboards_from_last_msg,
     set_last_msg_and_markup,
+    get_address_by_coordinates as _get_address_by_coordinates
 )
 from bot.utils.bot_functions import *
 from bot.utils.keyboards import *
@@ -224,15 +225,10 @@ async def get_point_a(update: Update, context: CustomContext):
     if message.location:
         lat, lon = _location_coordinates(message.location)
         await remove_inline_keyboards_from_last_msg(update, context)
-        context.user_data.update(
-            {
-                "src": "location",
-                "src_lat": lat,
-                "src_lon": lon,
-                "src_street": _coordinates_text(lat, lon),
-                "src_house": ""
-            },
-        )
+        src, src_lat, src_lon = "location", lat, lon
+        src_street = await _get_address_by_coordinates(lat, lon) or _coordinates_text(lat, lon)
+        src_house = ""
+
         if context.user_data.get("is_intercity"):
             return await _to_the_get_pre_order_date(update, context)
         elif context.user_data.get("ask_point_b"):
@@ -241,8 +237,26 @@ async def get_point_a(update: Update, context: CustomContext):
             return await _to_the_confirm_order(update, context)
 
     try:
-        street_title, street_id = _message_text_and_street_id(update)
-        street = await get_street_by_pk(int(street_id))
+        if "address_from_order" in message.text:
+            *args, order_id = str(message.text).split('-')
+            order = await Order.objects.filter(pk=int(order_id)).afirst()
+            if not order:
+                await bot_delete_message(update, context)
+                return GET_POINT_A
+            src_street = order.src_street
+            src_house = order.src_house
+            src_lat = order.src_lat
+            src_lon = order.src_lon
+            src = "location" if src_lat and src_lon else "address"
+        else:
+            street_title, street_id = _message_text_and_street_id(update)
+            street = await get_street_by_pk(int(street_id))
+            src_street = street.title or street_title
+            src_house = ""
+            src_lat = None
+            src_lon = None
+            src = "address"
+
     except (ValueError, TypeError):
         await bot_delete_message(update, context)
         return GET_POINT_A
@@ -250,10 +264,12 @@ async def get_point_a(update: Update, context: CustomContext):
     await remove_inline_keyboards_from_last_msg(update, context)
     context.user_data.update(
         {
-            "src": "address",
-            "src_street": street.title or street_title,
-            "src_house": ""
-        },
+            "src": src,
+            "src_street": src_street,
+            "src_house": src_house,
+            "src_lat": src_lat,
+            "src_lon": src_lon,
+        }
     )
     return await _to_the_get_point_a_house(update, context)
 

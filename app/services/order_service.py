@@ -1,6 +1,11 @@
 from app.models import Order
 # from app.services.postgresql_service import *
 from app.services.scat_service import *
+from django.utils import timezone
+from app.utils import get_address_by_coordinates
+from celery import shared_task
+from asgiref.sync import sync_to_async
+
 
 def filter_years_of_client_orders(bot_user):
     client_phone = bot_user.phone
@@ -80,9 +85,40 @@ def change_order_status_by_uuid(uuid, order_id, status):
         return True
     return False
 
-def change_order_status_by_order_id(order_id, status):
+
+def change_order_status_by_order_id(order_id, status, set_end_time=False):
     if order := get_order_by_order_id_without_404(order_id):
         order.status = int(status)
+        if set_end_time:
+            order.end_time = timezone.now()
         order.save()
         return True
     return False
+
+@shared_task
+def set_address_to_order(order_id):
+    order: Order | None = get_order_by_order_id_without_404(order_id)
+    if not order:
+        return False
+    
+    # check if coordinates are available
+    if order.src_lat and order.src_lon:
+        address = get_address_by_coordinates(float(order.src_lat), float(order.src_lon))
+        if address:
+            order.address = address
+            order.save()
+            return True
+        
+    elif order.src_street:
+        address = f"{order.src_street} {order.src_house}" if order.src_house else order.src_street
+        order.address = address
+        order.save()
+        return True
+
+    return False
+
+
+@sync_to_async
+def filter_completed_orders_by_user_id(bot_user_id):
+    orders = Order.objects.filter(user__user_id=bot_user_id).exclude(end_time=None).order_by('-start_time')
+    return orders

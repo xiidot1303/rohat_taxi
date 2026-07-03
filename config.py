@@ -28,3 +28,6 @@ ADMIN_USER_ID: str = os.environ.get("ADMIN_USER_ID") or ""
 # Scat
 SCAT_API_KEY = os.environ.get("SCAT_API_KEY") or ""
 SCAT_API_URL = os.environ.get("SCAT_API_URL") or ""
+
+# Yandex API
+YANDEX_GEOCODER_API_KEY = os.environ.get("YANDEX_GEOCODER_API_KEY") or ""
