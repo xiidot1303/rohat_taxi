@@ -45,6 +45,17 @@ settings_handler = ConversationHandler(
         PHONE_SETTINGS: [MessageHandler(filters.ALL & exceptions_for_filter_text, settings.phone_settings)],
         NAME_SETTINGS: [MessageHandler(filters.TEXT & exceptions_for_filter_text, settings.name_settings)],
         CITY_SETTINGS: [MessageHandler(filters.TEXT & exceptions_for_filter_text, settings.city_settings)],
+        FAVORITE_ADDRESSES_SETTINGS: [
+            CallbackQueryHandler(settings.favorite_addresses_settings),
+            MessageHandler(filters.TEXT & exceptions_for_filter_text, settings.favorite_addresses_settings),
+        ],
+        FAVORITE_ADDRESS_LOCATION: [
+            MessageHandler(filters.LOCATION, settings.favorite_address_location),
+            MessageHandler(filters.TEXT & exceptions_for_filter_text, settings.favorite_address_location),
+        ],
+        FAVORITE_ADDRESS_NAME: [
+            MessageHandler(filters.TEXT & exceptions_for_filter_text, settings.favorite_address_name),
+        ],
     },
     fallbacks=[
         CommandHandler("start", settings.start),
@@ -61,6 +72,7 @@ order_handler = ConversationHandler(
     states={
         GET_POINT_A: [
             CallbackQueryHandler(order.start, pattern="back"),
+            CallbackQueryHandler(order.get_point_a, pattern="^favorite_address"),
             MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_a),
             MessageHandler(filters.LOCATION, order.get_point_a),
             ],

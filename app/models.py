@@ -132,3 +132,17 @@ class Feedback(models.Model):
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
+
+
+class FavoriteAddress(models.Model):
+    bot_user = models.ForeignKey(
+        'bot.Bot_user', null=True, blank=True, related_name='favorite_addresses',
+        on_delete=models.SET_NULL, verbose_name='Пользователь'
+        )
+    address = models.CharField(null=True, blank=True, max_length=255, verbose_name='Адрес')
+    lat = models.CharField(null=True, blank=True, max_length=255, verbose_name='Широта')
+    lon = models.CharField(null=True, blank=True, max_length=255, verbose_name='Долгота')
+
+    class Meta:
+        verbose_name = "Избранный адрес"
+        verbose_name_plural = "Избранные адреса"

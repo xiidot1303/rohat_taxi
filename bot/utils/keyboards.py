@@ -84,6 +84,7 @@ async def settings_keyboard(context: CustomContext):
         [context.words.change_name],
         [context.words.change_phone_number],
         [context.words.change_city],
+        [context.words.change_favorite_addresses],
         [context.words.main_menu],
     ]
 
@@ -203,6 +204,7 @@ async def order_days_keyboard(
 async def selecting_address_keyboard(
     update: Update | None = None,
     context: CustomContext | None = None,
+    favorite_addresses_list: list[tuple[str, float, float]] | None = None,
 ):
     words = _words(update, context)
     inline_buttons = [
@@ -210,9 +212,19 @@ async def selecting_address_keyboard(
             InlineKeyboardButton(
                 text=words.search_addresses,
                 switch_inline_query_current_chat="",
+                style="success",
             ),
         ],
     ]
+    if favorite_addresses_list:
+        for address, lat, lon in favorite_addresses_list:
+            inline_buttons.append([
+                InlineKeyboardButton(
+                    text=address,
+                    callback_data=f"favorite_address-{lat}-{lon}",
+                    style="primary",
+                )
+            ])
     inline_buttons = await _inline_footer_buttons(
         inline_buttons,
         update=update,

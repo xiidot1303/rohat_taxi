@@ -165,8 +165,14 @@ class Strings:
     # ]
 
     select_address_or_location = [
-        "Lokatsiya yuboring 📍", 
-        "Отправьте локацию 📍"
+        "<b>📍 Lokatsiya yuborish</b> tugmasi orqali joriy joylashuvingizni yuboring.\n" \
+            "<b>🟢 Manzil tanlash 🔎 - </b>Ro'yxat ichidan kerakli manzilni tanlang\n" \
+                "🔵 Yoki sevimli manzillaringiz orasidan birini tanlang. " \
+                    "<i>(Sevimli manzillarni sozlamalar bo'limi orqali boshqarishingiz mumkin)</i>", 
+        "<b>📍 Отправить местоположение</b> - Отправьте свое текущее местоположение.\n" \
+            "<b>🟢 Выбрать адрес 🔎 - </b>Выберите адрес из списка\n" \
+                "🔵 Или выберите один из ваших избранных адресов. " \
+                    "<i>(Вы можете управлять своими избранными адресами в разделе настроек)</i>"
     ]
 
     search_addresses = ["Manzil tanlash 🔎", "Выбрать адрес 🔎"]
@@ -299,6 +305,51 @@ class Strings:
     change_city = [
         "Shaharni o'zgartirish 🏙", 
         "Изменить город 🏙"
+        ]
+
+    change_favorite_addresses = [
+        "Sevimli manzillarni o'zgartirish ⭐",
+        "Изменить избранные адреса ⭐"
+        ]
+
+    favorite_addresses = [
+        "Sevimli manzillar ⭐",
+        "Избранные адреса ⭐"
+        ]
+
+    favorite_address_add = [
+        "Yangi manzil qo'shish ➕",
+        "Добавить адрес ➕"
+        ]
+
+    favorite_address_name = [
+        "Manzil nomini kiriting",
+        "Введите название адреса"
+        ]
+
+    favorite_address_location = [
+        "Manzilning joylashuvini yuboring 📍",
+        "Отправьте местоположение адреса 📍"
+        ]
+
+    favorite_address_edit_prompt = [
+        "Joriy manzil: {}\nYangi lokatsiyani yuboring 📍",
+        "Текущий адрес: {}\nОтправьте новое местоположение 📍"
+        ]
+
+    favorite_address_no_addresses = [
+        "Hozircha saqlangan manzillar yo'q",
+        "Пока нет сохраненных адресов"
+        ]
+
+    favorite_address_added = [
+        "Sevimli manzil qo'shildi ✅",
+        "Избранный адрес добавлен ✅"
+        ]
+
+    favorite_address_updated = [
+        "Sevimli manzil yangilandi ✅",
+        "Избранный адрес обновлен ✅"
         ]
 
     current_city = [

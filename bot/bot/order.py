@@ -3,7 +3,7 @@ from __future__ import annotations
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import ConversationHandler
 
-from app.models import Order
+from app.models import Order, FavoriteAddress
 from app.services.address_service import get_street_by_pk
 from app.services.scat_service import (
     calculate_order_pre_cost_api,
@@ -26,6 +26,7 @@ from bot.utils import (
 from bot.utils.bot_functions import *
 from bot.utils.keyboards import *
 from app.utils import *
+from asgiref.sync import sync_to_async
 
 
 def _coordinates_text(lat, lon) -> str:
@@ -70,7 +71,12 @@ async def to_the_get_point_a(update: Update, context: CustomContext):
     await delete_callback_query_message(update)
 
     location_request_markup = await request_location_keyboard(context=context)
-    address_markup = await selecting_address_keyboard(context=context)
+    # list of favorite addresses of user
+    bot_user = await get_object_by_update(update)
+    favorite_addresses_list = await sync_to_async(list)(
+        FavoriteAddress.objects.filter(bot_user=bot_user).values_list("address", "lat", "lon")
+        )
+    address_markup = await selecting_address_keyboard(context=context, favorite_addresses_list=favorite_addresses_list)
 
     await bot_send_message(
         update,
@@ -222,44 +228,46 @@ async def get_point_a(update: Update, context: CustomContext):
     await bot_send_chat_action(update, context)
     message = update.effective_message
 
-    if message.location:
-        lat, lon = _location_coordinates(message.location)
-        await remove_inline_keyboards_from_last_msg(update, context)
+    if query := update.callback_query:
+        await query.delete_message()
+        await set_last_msg_and_markup(context, None, None)
+        *args, lat, lon = str(query.data).split("-")
         src, src_lat, src_lon = "location", lat, lon
         src_street = await _get_address_by_coordinates(lat, lon) or _coordinates_text(lat, lon)
         src_house = ""
 
-        if context.user_data.get("is_intercity"):
-            return await _to_the_get_pre_order_date(update, context)
-        elif context.user_data.get("ask_point_b"):
-            return await _to_the_get_point_b(update, context)
-        else:
-            return await _to_the_confirm_order(update, context)
+    elif message.location:
+        lat, lon = _location_coordinates(message.location)
+        src, src_lat, src_lon = "location", lat, lon
+        src_street = await _get_address_by_coordinates(lat, lon) or _coordinates_text(lat, lon)
+        src_house = ""
 
-    try:
-        if "address_from_order" in message.text:
-            *args, order_id = str(message.text).split('-')
-            order = await Order.objects.filter(pk=int(order_id)).afirst()
-            if not order:
-                await bot_delete_message(update, context)
-                return GET_POINT_A
-            src_street = order.src_street
-            src_house = order.src_house
-            src_lat = order.src_lat
-            src_lon = order.src_lon
-            src = "location" if src_lat and src_lon else "address"
-        else:
-            street_title, street_id = _message_text_and_street_id(update)
-            street = await get_street_by_pk(int(street_id))
-            src_street = street.title or street_title
-            src_house = ""
-            src_lat = None
-            src_lon = None
-            src = "address"
+    else:
+        try:
+            if "address_from_order" in message.text:
+                *args, order_id = str(message.text).split('-')
+                order = await Order.objects.filter(pk=int(order_id)).afirst()
+                if not order:
+                    await bot_delete_message(update, context)
+                    return GET_POINT_A
+                src_street = order.src_street
+                src_house = order.src_house
+                src_lat = order.src_lat
+                src_lon = order.src_lon
+                src = "location" if src_lat and src_lon else "address"
+            else:
+                street_title, street_id = _message_text_and_street_id(update)
+                street = await get_street_by_pk(int(street_id))
+                src_street = street.title or street_title
+                src_house = ""
+                src_lat = None
+                src_lon = None
+                src = "address"
 
-    except (ValueError, TypeError):
-        await bot_delete_message(update, context)
-        return GET_POINT_A
+        except (ValueError, TypeError):
+            await bot_delete_message(update, context)
+            return GET_POINT_A
+        
 
     await remove_inline_keyboards_from_last_msg(update, context)
     context.user_data.update(
@@ -271,6 +279,14 @@ async def get_point_a(update: Update, context: CustomContext):
             "src_lon": src_lon,
         }
     )
+    if src == "location":
+        if context.user_data.get("is_intercity"):
+            return await _to_the_get_pre_order_date(update, context)
+        elif context.user_data.get("ask_point_b"):
+            return await _to_the_get_point_b(update, context)
+        else:
+            return await _to_the_confirm_order(update, context)
+
     return await _to_the_get_point_a_house(update, context)
 
 

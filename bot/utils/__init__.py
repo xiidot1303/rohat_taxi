@@ -39,8 +39,8 @@ async def save_and_get_photo(update, context):
     d_photo = await photo_id.download('files/photos/{}'.format(file_name))
     return str(d_photo).replace('files/', '')
 
-async def set_last_msg_and_markup(context, msg, markup=None):
-    context.user_data['last_msg_id'] = msg.message_id
+async def set_last_msg_and_markup(context, msg=None, markup=None):
+    context.user_data['last_msg_id'] = msg.message_id if msg else None
     context.user_data['last_markup'] = markup
 
 

@@ -218,3 +218,9 @@ class FeedbackAdmin(ModelAdmin):
     list_filter = ["datetime"]
     search_fields = ["bot_user__name", "bot_user__phone", "message"]
     ordering = ("-datetime",)
+
+
+@admin.register(FavoriteAddress)
+class FavoriteAddressAdmin(ModelAdmin):
+    list_display = ["id", "bot_user", "address", "lat", "lon"]
+    search_fields = ["bot_user__name", "bot_user__phone", "address"]

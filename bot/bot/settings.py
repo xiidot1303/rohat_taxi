@@ -11,12 +11,15 @@ from telegram import (
 from telegram.constants import ParseMode
 from telegram.ext import ConversationHandler
 
-from app.models import City
+from app.models import City, FavoriteAddress
 from bot.bot import CustomContext, make_button_settings
 from bot.models import Bot_user
 from bot.resources.conversationList import (
     ALL_SETTINGS,
     CITY_SETTINGS,
+    FAVORITE_ADDRESS_LOCATION,
+    FAVORITE_ADDRESS_NAME,
+    FAVORITE_ADDRESSES_SETTINGS,
     LANG_SETTINGS,
     NAME_SETTINGS,
     PHONE_SETTINGS,
@@ -37,6 +40,67 @@ def _normalize_phone_number(phone_number: str | None) -> str | None:
     if digits.startswith("998") and len(digits) > 12:
         return f"+{digits[:12]}"
     return None
+
+
+def _favorite_address_button_text(address: FavoriteAddress, context: CustomContext) -> str:
+    return str(address.address or context.words.favorite_addresses)
+
+
+def _favorite_address_details_text(address: FavoriteAddress, context: CustomContext) -> str:
+    address_name = str(address.address or context.words.favorite_addresses)
+    coordinates = f"{address.lat or ''}, {address.lon or ''}".strip(", ")
+    if coordinates:
+        return f"{address_name}\n{coordinates}"
+    return address_name
+
+
+def _favorite_addresses_menu_text(addresses: list[FavoriteAddress], context: CustomContext) -> str:
+    if not addresses:
+        return str(context.words.favorite_address_no_addresses)
+
+    return "\n\n".join(
+        [str(context.words.favorite_addresses), *[_favorite_address_details_text(address, context) for address in addresses]]
+    )
+
+
+async def _show_favorite_addresses(update: Update, context: CustomContext) -> int:
+    user = await get_object_by_update(update)
+    favorite_addresses = [
+        address
+        async for address in FavoriteAddress.objects.filter(bot_user=user).order_by("pk")
+    ]
+    buttons = []
+    for address in favorite_addresses:
+        buttons.append([
+            InlineKeyboardButton(
+                text=_favorite_address_button_text(address, context),
+                callback_data=f"fav_edit_{address.pk}",
+            )
+        ])
+    buttons.append([
+        InlineKeyboardButton(
+            text=str(context.words.favorite_address_add),
+            callback_data="fav_add",
+        )
+    ])
+    buttons.append([
+        InlineKeyboardButton(text=str(context.words.back), callback_data="back_settings")
+    ])
+
+    await update_message_reply_text(
+        update,
+        _favorite_addresses_menu_text(favorite_addresses, context),
+        reply_markup=InlineKeyboardMarkup(buttons),
+    )
+    return FAVORITE_ADDRESSES_SETTINGS
+
+
+def _favorite_address_location_markup(context: CustomContext) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton(text=str(context.words.back), callback_data="back_favorite_addresses")],
+        ]
+    )
 
 
 def _language_buttons(
@@ -145,6 +209,9 @@ async def all_settings(update: Update, context: CustomContext):
         )
         return CITY_SETTINGS
 
+    if text == context.words.change_favorite_addresses:
+        return await _show_favorite_addresses(update, context)
+
     return await _show_settings_menu(update, context)
 
 
@@ -236,6 +303,121 @@ async def city_settings(update: Update, context: CustomContext):
     await user.asave(update_fields=["city_id"])
     await update_message_reply_text(update, context.words.changed_your_city)
     return await _show_settings_menu(update, context)
+
+
+async def favorite_addresses_settings(update: Update, context: CustomContext):
+    if query := update.callback_query:
+        await query.answer()
+
+        if query.data == "back_settings":
+            await query.message.delete()
+            return await _show_settings_menu(update, context)
+
+        if query.data == "back_favorite_addresses":
+            return await _show_favorite_addresses(update, context)
+
+        if query.data == "fav_add":
+            context.user_data["favorite_address_mode"] = "add"
+            context.user_data.pop("favorite_address_id", None)
+            await query.edit_message_text(
+                str(context.words.favorite_address_location),
+                reply_markup=_favorite_address_location_markup(context),
+            )
+            return FAVORITE_ADDRESS_LOCATION
+
+        if query.data.startswith("fav_edit_"):
+            address_id = int(query.data.split("_", 2)[-1])
+            user = await get_object_by_update(update)
+            address = await FavoriteAddress.objects.filter(pk=address_id, bot_user=user).afirst()
+            if address:
+                context.user_data["favorite_address_mode"] = "edit"
+                context.user_data["favorite_address_id"] = address.pk
+                await query.edit_message_text(
+                    str(context.words.favorite_address_edit_prompt).format(
+                        str(address.address or context.words.favorite_addresses),
+                    ),
+                    reply_markup=_favorite_address_location_markup(context),
+                )
+                return FAVORITE_ADDRESS_LOCATION
+
+        return FAVORITE_ADDRESSES_SETTINGS
+
+    if update.effective_message.text == context.words.back:
+        return await _show_settings_menu(update, context)
+
+    return await _show_favorite_addresses(update, context)
+
+
+async def favorite_address_location(update: Update, context: CustomContext):
+    message = update.effective_message
+    if message.text == context.words.back:
+        return await _show_favorite_addresses(update, context)
+
+    if not message.location:
+        await update_message_reply_text(
+            update,
+            str(context.words.invalid_location),
+            reply_markup=_favorite_address_location_markup(context),
+        )
+        return FAVORITE_ADDRESS_LOCATION
+
+    lat = str(message.location.latitude)
+    lon = str(message.location.longitude)
+    mode = context.user_data.get("favorite_address_mode")
+
+    if mode == "edit":
+        address_id = context.user_data.get("favorite_address_id")
+        address = await FavoriteAddress.objects.filter(pk=address_id).afirst()
+        if address:
+            address.lat = lat
+            address.lon = lon
+            await address.asave(update_fields=["lat", "lon"])
+        context.user_data.pop("favorite_address_mode", None)
+        context.user_data.pop("favorite_address_id", None)
+        await update_message_reply_text(update, str(context.words.favorite_address_updated))
+        return await _show_favorite_addresses(update, context)
+
+    context.user_data["favorite_address_lat"] = lat
+    context.user_data["favorite_address_lon"] = lon
+    await update_message_reply_text(
+        update,
+        str(context.words.favorite_address_name),
+        reply_markup=ReplyKeyboardMarkup([[str(context.words.back)]], resize_keyboard=True),
+    )
+    return FAVORITE_ADDRESS_NAME
+
+
+async def favorite_address_name(update: Update, context: CustomContext):
+    message = update.effective_message
+    if message.text == context.words.back:
+        return await _show_favorite_addresses(update, context)
+
+    address_name = (message.text or "").strip()
+    if not address_name:
+        await update_message_reply_text(
+            update,
+            str(context.words.favorite_address_name),
+            reply_markup=ReplyKeyboardMarkup([[context.words.back]], resize_keyboard=True),
+        )
+        return FAVORITE_ADDRESS_NAME
+
+    lat = context.user_data.get("favorite_address_lat")
+    lon = context.user_data.get("favorite_address_lon")
+    if lat is None or lon is None:
+        return await _show_favorite_addresses(update, context)
+
+    user = await get_object_by_update(update)
+    await FavoriteAddress.objects.acreate(
+        bot_user=user,
+        address=address_name,
+        lat=str(lat),
+        lon=str(lon),
+    )
+    context.user_data.pop("favorite_address_lat", None)
+    context.user_data.pop("favorite_address_lon", None)
+    context.user_data.pop("favorite_address_mode", None)
+    await update_message_reply_text(update, str(context.words.favorite_address_added))
+    return await _show_favorite_addresses(update, context)
 
 
 async def start(update: Update, context: CustomContext):
