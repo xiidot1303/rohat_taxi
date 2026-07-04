@@ -46,7 +46,6 @@ settings_handler = ConversationHandler(
         NAME_SETTINGS: [MessageHandler(filters.TEXT & exceptions_for_filter_text, settings.name_settings)],
         CITY_SETTINGS: [MessageHandler(filters.TEXT & exceptions_for_filter_text, settings.city_settings)],
         FAVORITE_ADDRESSES_SETTINGS: [
-            CallbackQueryHandler(settings.favorite_addresses_settings),
             MessageHandler(filters.TEXT & exceptions_for_filter_text, settings.favorite_addresses_settings),
         ],
         FAVORITE_ADDRESS_LOCATION: [

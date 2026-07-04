@@ -84,7 +84,7 @@ async def settings_keyboard(context: CustomContext):
         [context.words.change_name],
         [context.words.change_phone_number],
         [context.words.change_city],
-        [context.words.change_favorite_addresses],
+        [context.words.favorite_addresses],
         [context.words.main_menu],
     ]
 
