@@ -189,7 +189,7 @@ class Strings:
 
     type_house_number = ["🏘 Uy raqamini kiriting", "🏘 Введите номер дома"]
 
-    point_a = ["🏠 Manzil", "🏠 Адрес"]
+    point_a = ["🏠 Qayerdan", "🏠 Откуда"]
     
     point_b = ["🏡 Qayerga", "🏡 Куда"]
 

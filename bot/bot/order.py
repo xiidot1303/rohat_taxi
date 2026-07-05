@@ -91,6 +91,16 @@ async def to_the_get_point_a(update: Update, context: CustomContext):
         address_markup,
     )
     await set_last_msg_and_markup(context, message, address_markup)
+    # empty src
+    context.user_data.update(
+        {
+            "src": None,
+            "src_street": "",
+            "src_house": "",
+            "src_lat": None,
+            "src_lon": None,
+        }
+    )
     return GET_POINT_A
 
 
@@ -111,10 +121,25 @@ async def _to_the_get_point_b(update: Update, context: CustomContext):
     street = context.user_data.get("src_street", "")
     house = context.user_data.get("src_house", "")
     text = await select_point_b_string(street, house, context=context)
-    markup = await selecting_address_with_skip_keyboard(context=context)
+    # list of favorite addresses of user
+    bot_user = await get_object_by_update(update)
+    favorite_addresses_list = await sync_to_async(list)(
+        FavoriteAddress.objects.filter(bot_user=bot_user).values_list("address", "lat", "lon")
+        )
+    markup = await selecting_address_with_skip_keyboard(context=context, favorite_addresses_list=favorite_addresses_list)
 
     message = await update_message_reply_text(update, text, markup)
     await set_last_msg_and_markup(context, message, markup)
+    # set empty dst
+    context.user_data.update(
+        {
+            "dst": None,
+            "dst_street": "",
+            "dst_house": "",
+            "dst_lat": None,
+            "dst_lon": None,
+        }
+    )
     return GET_POINT_B
 
 
@@ -280,10 +305,10 @@ async def get_point_a(update: Update, context: CustomContext):
         }
     )
     if src == "location":
-        if context.user_data.get("is_intercity"):
-            return await _to_the_get_pre_order_date(update, context)
-        elif context.user_data.get("ask_point_b"):
+        if context.user_data.get("ask_point_b"):
             return await _to_the_get_point_b(update, context)
+        elif context.user_data.get("is_intercity"):
+            return await _to_the_get_pre_order_date(update, context)
         else:
             return await _to_the_confirm_order(update, context)
 
@@ -298,10 +323,10 @@ async def get_point_a_house(update: Update, context: CustomContext):
         context.user_data["src_house"] = message_text
         await remove_inline_keyboards_from_last_msg(update, context)
 
-    if context.user_data.get("is_intercity"):
-        return await _to_the_get_pre_order_date(update, context)
-    elif context.user_data.get("ask_point_b"):
+    if context.user_data.get("ask_point_b"):
         return await _to_the_get_point_b(update, context)
+    elif context.user_data.get("is_intercity"):
+        return await _to_the_get_pre_order_date(update, context)
     else:
         return await _to_the_confirm_order(update, context)
 
@@ -332,36 +357,61 @@ async def get_pre_order_time(update: Update, context: CustomContext):
 async def get_point_b(update: Update, context: CustomContext):
     await bot_send_chat_action(update, context)
     message = update.effective_message
+    if query := update.callback_query:
+        await query.delete_message()
+        await set_last_msg_and_markup(context, None, None)
+        *args, lat, lon = str(query.data).split("-")
+        dst, dst_lat, dst_lon = "location", lat, lon
+        dst_street = await _get_address_by_coordinates(lat, lon) or _coordinates_text(lat, lon)
+        dst_house = ""
 
-    if message.location:
+    elif message.location:
         lat, lon = _location_coordinates(message.location)
-        await remove_inline_keyboards_from_last_msg(update, context)
-        context.user_data.update(
-            {
-                "dst": "location",
-                "dst_lat": lat,
-                "dst_lon": lon,
-                "dst_street": _coordinates_text(lat, lon),
-                "dst_house": "",
-            },
-        )
-        return await _to_the_confirm_order(update, context)
-
-    try:
-        street_title, street_id = _message_text_and_street_id(update)
-        street = await get_street_by_pk(int(street_id))
-    except (ValueError, TypeError):
-        await bot_delete_message(update, context)
-        return GET_POINT_B
+        dst, dst_lat, dst_lon = "location", lat, lon
+        dst_street = await _get_address_by_coordinates(lat, lon) or _coordinates_text(lat, lon)
+        dst_house = ""
+    else:
+        try:
+            if "address_from_order" in message.text:
+                *args, order_id = str(message.text).split('-')
+                order = await Order.objects.filter(pk=int(order_id)).afirst()
+                if not order:
+                    await bot_delete_message(update, context)
+                    return GET_POINT_B
+                dst_street = order.dst_street
+                dst_house = order.dst_house
+                dst_lat = order.dst_lat
+                dst_lon = order.dst_lon
+                dst = "location" if dst_lat and dst_lon else "address"
+            else:
+                street_title, street_id = _message_text_and_street_id(update)
+                street = await get_street_by_pk(int(street_id))
+                dst_street = street.title or street_title
+                dst_house = ""
+                dst_lat = None
+                dst_lon = None
+                dst = "address"
+            
+        except (ValueError, TypeError):
+            await bot_delete_message(update, context)
+            return GET_POINT_B
 
     await remove_inline_keyboards_from_last_msg(update, context)
     context.user_data.update(
         {
-            "dst": "address",
-            "dst_street": street.title or street_title,
+            "dst": dst,
+            "dst_street": dst_street,
             "dst_house": "",
+            "dst_lat": dst_lat,
+            "dst_lon": dst_lon,
         },
     )
+    if dst == "location":
+        if context.user_data.get("is_intercity"):
+            return await _to_the_get_pre_order_date(update, context)
+        else:
+            return await _to_the_confirm_order(update, context)
+
     return await _to_the_get_point_b_house(update, context)
 
 
@@ -371,7 +421,12 @@ async def get_point_b_house(update: Update, context: CustomContext):
     else:
         message_text = _message_text(update)
         context.user_data["dst_house"] = message_text
-    return await _to_the_confirm_order(update, context)
+        await remove_inline_keyboards_from_last_msg(update, context)
+
+    if context.user_data.get("is_intercity"):
+        return await _to_the_get_pre_order_date(update, context)
+    else:
+        return await _to_the_confirm_order(update, context)
 
 
 async def order_process(update: Update, context: CustomContext):

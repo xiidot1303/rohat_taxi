@@ -91,6 +91,7 @@ order_handler = ConversationHandler(
         GET_POINT_B: [
             CallbackQueryHandler(order.to_the_get_point_a, pattern="back"),
             CallbackQueryHandler(order._to_the_confirm_order, pattern="skip"),
+            CallbackQueryHandler(order.get_point_b, pattern="^favorite_address"),
             MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_b),
             MessageHandler(filters.LOCATION, order.get_point_b),
             ],

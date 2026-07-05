@@ -249,6 +249,7 @@ async def request_location_keyboard(
 async def selecting_address_with_skip_keyboard(
     update: Update | None = None,
     context: CustomContext | None = None,
+    favorite_addresses_list: list[tuple[str, float, float]] | None = None,
 ):
     words = _words(update, context)
     inline_buttons = [
@@ -256,10 +257,22 @@ async def selecting_address_with_skip_keyboard(
             InlineKeyboardButton(
                 text=words.search_addresses,
                 switch_inline_query_current_chat="",
+                style="success",
             ),
-        ],
-        [InlineKeyboardButton(text=words.skip, callback_data="skip")],
+        ]
     ]
+    if favorite_addresses_list:
+        for address, lat, lon in favorite_addresses_list:
+            inline_buttons.append([
+                InlineKeyboardButton(
+                    text=address,
+                    callback_data=f"favorite_address-{lat}-{lon}",
+                    style="primary"
+                )
+            ])
+    inline_buttons.append(
+        [InlineKeyboardButton(text=words.skip, callback_data="skip", style="danger")]
+    )
     inline_buttons = await _inline_footer_buttons(
         inline_buttons,
         update=update,
@@ -293,14 +306,9 @@ async def confirm_order_keyboard(
     words = _words(update, context)
     buttons = [
         [InlineKeyboardButton(text=words.confirm, callback_data="confirm")],
-        [
-            InlineKeyboardButton(text=words.change_point_a, callback_data="change_point_a"),
-            (
-                InlineKeyboardButton(text=words.change_point_b, callback_data="change_point_b")
-                if not pre_order_datetime else
-                InlineKeyboardButton(text=words.change_pre_order_time, callback_data="change_pre_order_time")
-            )
-        ],
+        [InlineKeyboardButton(text=words.change_point_a, callback_data="change_point_a")],
+        [InlineKeyboardButton(text=words.change_point_b, callback_data="change_point_b")],
+        [InlineKeyboardButton(text=words.change_pre_order_time, callback_data="change_pre_order_time")],
         [InlineKeyboardButton(text=words.main_menu, callback_data="main_menu")]
     ]
     return InlineKeyboardMarkup(buttons)
