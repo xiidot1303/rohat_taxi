@@ -26,7 +26,7 @@ def cheque_info(request):
                     change_order_status_by_uuid(uuid, order_id, data['status_code'])
                 else:
                     change_order_status_by_order_id(order_id, data['status_code'])
-                    # send notification
+                # send notification
                 newsletter_service.send_order_status.delay(phone, data)
 
             elif data['status_code'] == '100':
