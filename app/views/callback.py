@@ -22,7 +22,7 @@ def cheque_info(request):
             order_id = data['id']
             # check status and send message
             if data['status_code'] in ['80', '95', '10', '11', '4', '1']:
-                if data['status_code'] == '1':
+                if uuid:
                     change_order_status_by_uuid(uuid, order_id, data['status_code'])
                 else:
                     change_order_status_by_order_id(order_id, data['status_code'])
@@ -34,7 +34,7 @@ def cheque_info(request):
                 newsletter_service.send_cheque.delay(
                     phone, instance.id
                 )
-                change_order_status_by_order_id(order_id, data['status_code'])
+                change_order_status_by_order_id(order_id, data['status_code'], set_end_time=True)
                 # set address to order
                 set_address_to_order.delay(order_id)
                 return Response(status=status.HTTP_200_OK)
