@@ -237,6 +237,7 @@ async def order_details_before_confirmation_string(
     price,
     distance,
     pre_order_datetime: datetime | None = None,
+    passengers_count: int | None = None,
     *,
     update: Update | None = None,
     context: CustomContext | None = None,
@@ -258,7 +259,8 @@ async def order_details_before_confirmation_string(
     )
     if pre_order_datetime:
         result += f"{words.pre_order_time}: {pre_order_datetime.strftime("%d.%m.%Y %H:%M")}\n"
-
+    if passengers_count:
+        result += f"{words.passengers_count}: {passengers_count}\n"
     result += f"\n{words.confirm_order}"
     return result 
 

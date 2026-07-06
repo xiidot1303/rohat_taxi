@@ -231,7 +231,7 @@ class ScatClient:
         return self._response_body(response).get("id")
 
     async def create_order(
-        self, token: str, service_id: int
+        self, token: str, service_id: int, comment: str = ""
     ) -> tuple[bool, str | None]:
         response = await self._request(
             "order",
@@ -239,7 +239,7 @@ class ScatClient:
             payload={
                 "token": token,
                 "moderation_required": "no",
-                "comment": self._order_comment(),
+                "comment": self._order_comment(comment),
                 "service_id": service_id,
             },
         )
@@ -254,10 +254,10 @@ class ScatClient:
         return False, "Unexpected SCAT API status"
 
     @staticmethod
-    def _order_comment() -> str:
-        if str(DEBUG).lower() in {"1", "true", "yes", "on"}:
-            return "TEST Гайрат акага"
-        return "From Telegram Bot"
+    def _order_comment(comment: str = "") -> str:
+        if DEBUG:
+            return f"TEST Гайрат акага\n\n{comment}"
+        return comment
 
     async def cancel_order(self, uuid: str) -> bool:
         response = await self._request(
@@ -342,8 +342,11 @@ async def region_by_coordinates_api(
     return await get_scat_client().region_by_coordinates(lat, lon)
 
 
-async def create_order_api(token: str, service_id: int) -> tuple[bool, str | None]:
-    return await get_scat_client().create_order(token, service_id)
+async def create_order_api(token: str, service_id: int, passengers_count: int | None = None) -> tuple[bool, str | None]:
+    comment = ""
+    if passengers_count is not None:
+        comment += "Количество пассажиров: {}\n".format(passengers_count)
+    return await get_scat_client().create_order(token, service_id, comment=comment)
 
 
 async def cancel_order_api(uuid: str) -> bool:

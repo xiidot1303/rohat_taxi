@@ -68,7 +68,6 @@ async def _create_order_record(bot_user, uuid: str, data: dict) -> Order:
 
 
 async def to_the_get_point_a(update: Update, context: CustomContext):
-    await delete_callback_query_message(update)
 
     location_request_markup = await request_location_keyboard(context=context)
     # list of favorite addresses of user
@@ -90,6 +89,7 @@ async def to_the_get_point_a(update: Update, context: CustomContext):
         await select_point_a_string(context=context),
         address_markup,
     )
+    await delete_callback_query_message(update)
     await set_last_msg_and_markup(context, message, address_markup)
     # empty src
     context.user_data.update(
@@ -116,8 +116,6 @@ async def _to_the_get_point_a_house(update: Update, context: CustomContext):
 
 
 async def _to_the_get_point_b(update: Update, context: CustomContext):
-    await delete_callback_query_message(update)
-
     street = context.user_data.get("src_street", "")
     house = context.user_data.get("src_house", "")
     text = await select_point_b_string(street, house, context=context)
@@ -126,9 +124,15 @@ async def _to_the_get_point_b(update: Update, context: CustomContext):
     favorite_addresses_list = await sync_to_async(list)(
         FavoriteAddress.objects.filter(bot_user=bot_user).values_list("address", "lat", "lon")
         )
-    markup = await selecting_address_with_skip_keyboard(context=context, favorite_addresses_list=favorite_addresses_list)
+
+    markup = await selecting_address_with_skip_keyboard(
+        context=context, 
+        favorite_addresses_list=favorite_addresses_list,
+        add_skip_button=False if context.user_data.get("is_intercity") else True
+    )
 
     message = await update_message_reply_text(update, text, markup)
+    await delete_callback_query_message(update)
     await set_last_msg_and_markup(context, message, markup)
     # set empty dst
     context.user_data.update(
@@ -155,11 +159,11 @@ async def _to_the_get_point_b_house(update: Update, context: CustomContext):
 
 
 async def _to_the_get_pre_order_date(update: Update, context: CustomContext):
-    await delete_callback_query_message(update)
     markup = await next_days_list_keyboard(context)
     text = context.words.select_pre_order_date
     message = await update.effective_message.reply_html(text, reply_markup=markup)
     await set_last_msg_and_markup(context, message, markup)
+    await delete_callback_query_message(update)
     return GET_PRE_ORDER_DATE
 
 
@@ -179,9 +183,19 @@ async def _to_the_get_pre_order_time(update: Update, context: CustomContext):
     return GET_PRE_ORDER_TIME
 
 
+async def _to_the_select_passangers_count(update: Update, context: CustomContext):
+    markup = await select_passengers_count_keyboard(context)
+    text = context.words.select_passengers_count
+    if update.callback_query:
+        message = await update.callback_query.edit_message_text(text, reply_markup=markup, parse_mode="HTML")
+    else:
+        message = await update.effective_message.reply_html(text, reply_markup=markup)
+    await set_last_msg_and_markup(context, message, markup)
+    return SELECT_PASSENGERS_COUNT
+
+
 async def _to_the_confirm_order(update: Update, context: CustomContext):
     await bot_send_chat_action(update, context)
-    await delete_callback_query_message(update)
     data = context.user_data
     bot_user = await get_object_by_update(update)
     pre_order_datetime_iso = context.user_data.get("pre_order_datetime_iso")
@@ -213,12 +227,14 @@ async def _to_the_confirm_order(update: Update, context: CustomContext):
         price,
         distance,
         pre_order_datetime=pre_order_datetime,
+        passengers_count=data.get("passengers_count"),
         context=context,
     )
     markup = await confirm_order_keyboard(context=context, pre_order_datetime=pre_order_datetime)
     message = await update_message_reply_text(update, text, markup)
     context.user_data["token"] = token
     await set_last_msg_and_markup(context, message, markup)
+    await delete_callback_query_message(update)
     return CONFIRM_ORDER
 
 
@@ -228,7 +244,8 @@ async def _to_the_order_process(update: Update, context: CustomContext):
     bot_user = await get_object_by_update(update)
     status, uuid_or_message = await create_order_api(
         data.get("token"),
-        data.get("service_id")
+        data.get("service_id"),
+        passengers_count=data.get("passengers_count")
     )
     if not status:
         await update_message_reply_text(update, uuid_or_message)
@@ -351,6 +368,14 @@ async def get_pre_order_time(update: Update, context: CustomContext):
     pre_order_datetime: datetime = datetime.combine(pre_order_date, pre_order_time)
     context.user_data['pre_order_datetime_iso'] = pre_order_datetime.isoformat()
     await remove_inline_keyboards_from_last_msg(update, context)
+    return await _to_the_select_passangers_count(update, context)
+
+
+async def get_passengers_count(update: Update, context: CustomContext):
+    query = update.callback_query
+    *args, passengers_count = str(query.data).split("-")
+    context.user_data['passengers_count'] = int(passengers_count)
+
     return await _to_the_confirm_order(update, context)
 
 

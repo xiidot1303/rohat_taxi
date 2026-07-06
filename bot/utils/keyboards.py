@@ -250,6 +250,7 @@ async def selecting_address_with_skip_keyboard(
     update: Update | None = None,
     context: CustomContext | None = None,
     favorite_addresses_list: list[tuple[str, float, float]] | None = None,
+    add_skip_button: bool = True,
 ):
     words = _words(update, context)
     inline_buttons = [
@@ -270,9 +271,10 @@ async def selecting_address_with_skip_keyboard(
                     style="primary"
                 )
             ])
-    inline_buttons.append(
-        [InlineKeyboardButton(text=words.skip, callback_data="skip", style="danger")]
-    )
+    if add_skip_button:
+        inline_buttons.append(
+            [InlineKeyboardButton(text=words.skip, callback_data="skip", style="danger")]
+        )
     inline_buttons = await _inline_footer_buttons(
         inline_buttons,
         update=update,
@@ -308,9 +310,25 @@ async def confirm_order_keyboard(
         [InlineKeyboardButton(text=words.confirm, callback_data="confirm")],
         [InlineKeyboardButton(text=words.change_point_a, callback_data="change_point_a")],
         [InlineKeyboardButton(text=words.change_point_b, callback_data="change_point_b")],
-        [InlineKeyboardButton(text=words.change_pre_order_time, callback_data="change_pre_order_time")],
-        [InlineKeyboardButton(text=words.main_menu, callback_data="main_menu")]
     ]
+    if pre_order_datetime:
+        buttons.extend([
+            [
+                InlineKeyboardButton(
+                text=words.change_pre_order_time,
+                callback_data="change_pre_order_time"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=words.change_passengers_count,
+                    callback_data="change_passengers_count"
+                )
+            ]
+        ])
+    buttons.append(
+        [InlineKeyboardButton(text=words.main_menu, callback_data="main_menu")]
+    )
     return InlineKeyboardMarkup(buttons)
 
 
@@ -322,6 +340,20 @@ async def next_days_list_keyboard(context: CustomContext):
             callback_data=f"pre_order_date-{(today + timedelta(days=i)).toordinal()}"
         )]
         for i in range(4)
+    ]
+    buttons.append([
+        InlineKeyboardButton(
+            text=context.words.back,
+            callback_data="back"
+        )
+    ])
+    return InlineKeyboardMarkup(buttons)
+
+
+async def select_passengers_count_keyboard(context: CustomContext):
+    buttons = [
+        [InlineKeyboardButton(text=str(i), callback_data=f"passengers_count-{i}")]
+        for i in range(1, 5)
     ]
     buttons.append([
         InlineKeyboardButton(

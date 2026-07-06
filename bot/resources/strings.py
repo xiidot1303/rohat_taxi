@@ -446,19 +446,19 @@ class Strings:
         "Дата заказа"
     ]
 
-    _ = [
-        "",
-        ""
+    select_passengers_count = [
+        "👥 Yo'lovchilar sonini tanlang",
+        "👥 Выберите количество пассажиров"
     ]
 
-    _ = [
-        "",
-        ""
+    change_passengers_count = [
+        "🔄 Yo'lovchilar sonini o'zgartirish",
+        "🔄 Изменить количество пассажиров"
     ]
 
-    _ = [
-        "",
-        ""
+    passengers_count = [
+        "👥 Yo'lovchilar soni",
+        "👥 Количество пассажиров"
     ]
 
     _ = [

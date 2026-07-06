@@ -80,14 +80,6 @@ order_handler = ConversationHandler(
             CallbackQueryHandler(order.get_point_a_house, pattern="skip"),
             MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_a_house)
             ],
-        GET_PRE_ORDER_DATE: [
-            CallbackQueryHandler(order.get_pre_order_date, pattern="^pre_order_date"),
-            CallbackQueryHandler(order.to_the_get_point_a, pattern="back")
-        ],
-        GET_PRE_ORDER_TIME: [
-            MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_pre_order_time),
-            CallbackQueryHandler(order._to_the_get_pre_order_date, pattern="back")
-        ],
         GET_POINT_B: [
             CallbackQueryHandler(order.to_the_get_point_a, pattern="back"),
             CallbackQueryHandler(order._to_the_confirm_order, pattern="skip"),
@@ -100,11 +92,24 @@ order_handler = ConversationHandler(
             CallbackQueryHandler(order.get_point_b_house, pattern="skip"),
             MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_point_b_house)
             ],
+        GET_PRE_ORDER_DATE: [
+            CallbackQueryHandler(order.get_pre_order_date, pattern="^pre_order_date"),
+            CallbackQueryHandler(order.to_the_get_point_a, pattern="back")
+        ],
+        GET_PRE_ORDER_TIME: [
+            MessageHandler(filters.TEXT & exceptions_for_filter_text, order.get_pre_order_time),
+            CallbackQueryHandler(order._to_the_get_pre_order_date, pattern="back")
+        ],
+        SELECT_PASSENGERS_COUNT: [
+            CallbackQueryHandler(order.get_passengers_count, pattern="^passengers_count"),
+            CallbackQueryHandler(order._to_the_get_pre_order_time, pattern="back")
+        ],
         CONFIRM_ORDER: [
             CallbackQueryHandler(order._to_the_order_process, pattern="confirm"),
             CallbackQueryHandler(order.to_the_get_point_a, pattern="change_point_a"),
             CallbackQueryHandler(order._to_the_get_point_b, pattern="change_point_b"),
             CallbackQueryHandler(order._to_the_get_pre_order_date, pattern="change_pre_order_time"),
+            CallbackQueryHandler(order._to_the_select_passangers_count, pattern="change_passengers_count"),
             ],
         ORDER_PROCESS: [
             CallbackQueryHandler(order.order_process),
