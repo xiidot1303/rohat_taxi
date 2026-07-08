@@ -1,7 +1,9 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from bot.models import Bot_user
+from bot.models import Bot_user, Message
 from bot.services.redis_service import set_user_lang
+from app.services.bot_service import send_newsletter_api
+from django.conf import settings
 
 
 @receiver(post_save, sender=Bot_user)
@@ -28,3 +30,22 @@ def handle_lang_change(sender, instance: Bot_user, **kwargs):
         except Bot_user.DoesNotExist:
             # If the instance does not exist in the database yet, do nothing
             pass
+
+
+@receiver(post_save, sender=Message)
+def send_message_to_users(sender, instance: Message, created, **kwargs):
+    """
+    Send a message to all users when a new message is created.
+    """
+    if created:
+        users = instance.bot_users.all()
+        if not users:
+            users = Bot_user.objects.all()
+        # photo=f"{settings.MEDIA_URL}/{instance.photo.name}" if instance.photo else None
+        # video=f"{settings.MEDIA_URL}/{instance.video.name}" if instance.video else None
+        # document=f"{settings.MEDIA_URL}/{instance.file.name}" if instance.file else None
+        for user in users:
+            send_newsletter_api.delay(
+                bot_user_id=user.user_id,
+                text=instance.text,
+            )
