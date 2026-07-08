@@ -303,7 +303,9 @@ async def selecting_address_house_keyboard(
 async def confirm_order_keyboard(
     update: Update | None = None,
     context: CustomContext | None = None,
-    pre_order_datetime: datetime | None = None
+    pre_order_datetime: datetime | None = None,
+    extra_services: list[dict] = [],
+    selected_extra_services_ids: list[int] = [],
 ):
     words = _words(update, context)
     buttons = [
@@ -325,6 +327,22 @@ async def confirm_order_keyboard(
                     callback_data="change_passengers_count"
                 )
             ]
+        ])
+    from bot.services.redis_service import get_user_lang
+    user_lang_code = get_user_lang(context._user_id)
+    user_lang = ["uz", "ru"][user_lang_code]
+    for service in extra_services:
+        service_id = service.get("service_id")
+        service_title = service.get(f"title_{user_lang}")
+        service_price = int(float(service.get("price")))
+        if not service_id or not service_title or not service_price:
+            continue
+        selected = "✅" if service_id in selected_extra_services_ids else ""
+        buttons.append([
+            InlineKeyboardButton(
+                text=f"{selected} {service_title} {service_price}",
+                callback_data=f"toggle_extra_service-{service_id}"
+            )
         ])
     buttons.append(
         [InlineKeyboardButton(text=words.main_menu, callback_data="main_menu")]

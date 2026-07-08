@@ -132,6 +132,7 @@ class ScatClient:
         dst_lon: float | str | None = None,
         service_id: int | str | None = None,
         pre_order_datetime: datetime | None = None,
+        extra_services: list[int] | None = None,
         retry_attempts: int = DEFAULT_RETRY_ATTEMPTS,
     ) -> ScatOrderPreCost:
         payload: dict[str, Any] = {"phone": phone}
@@ -147,6 +148,10 @@ class ScatClient:
             # convert to UTC time zone
             dt_utc = pre_order_datetime.astimezone(ZoneInfo("UTC"))
             payload["pre_order_time_utc"] = dt_utc.strftime("%Y-%m-%d %H:%M:%S")
+        
+        if extra_services:
+            payload["extras"] = json.dumps(self._extra_services_payload(extra_services), ensure_ascii=False)
+
         last_error: Exception | None = None
         for attempt in range(1, retry_attempts + 1):
             try:
@@ -216,6 +221,12 @@ class ScatClient:
             return way_points
         else:
             raise ValueError(f"Unsupported src, dst type: {src}, {dst}")
+    
+    @staticmethod
+    def _extra_services_payload(extra_services: list[int] | None) -> dict[str, int]:
+        if not extra_services:
+            return {}
+        return {f"{service_id}": 1 for service_id in extra_services}
 
     async def region_by_coordinates(
         self,
@@ -288,6 +299,13 @@ class ScatClient:
         )
         r_body = self._response_body(response)
         return r_body.get("lat"), r_body.get("lon")
+    
+    async def get_extra_services(self, service_id: int | str) -> Any:
+        response = await self._request(
+            "extras",
+            payload={"service_id": service_id}
+        )
+        return self._response_body(response).get("extras", [])
 
 
 def get_scat_client() -> ScatClient:
@@ -315,7 +333,8 @@ async def calculate_order_pre_cost_api(
     dst_lon: float | str | None = None,
     dst_lat: float | str | None = None,
     service_id: int | str | None = None,
-    pre_order_datetime: datetime | None = None
+    pre_order_datetime: datetime | None = None,
+    extra_services: list[int] | None = None,
 ) -> tuple[Any, Any, str]:
     pre_cost = await get_scat_client().calculate_order_pre_cost(
         phone=phone,
@@ -330,7 +349,8 @@ async def calculate_order_pre_cost_api(
         dst_lat=dst_lat,
         dst_lon=dst_lon,
         service_id=service_id,
-        pre_order_datetime=pre_order_datetime
+        pre_order_datetime=pre_order_datetime,
+        extra_services=extra_services,
     )
     return pre_cost.as_tuple()
 
@@ -379,3 +399,7 @@ async def order_info(uuid: str) -> Any:
 
 async def get_driver_coordinates(driver_id: str | int) -> tuple[int, int]:
     return await get_scat_client().get_driver_coordinates(driver_id)
+
+
+async def get_extra_services(service_id: int | str) -> Any:
+    return await get_scat_client().get_extra_services(service_id)

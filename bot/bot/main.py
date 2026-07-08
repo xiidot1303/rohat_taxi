@@ -50,6 +50,8 @@ async def ordering(update: Update, context: CustomContext):
     context.user_data['dst_house'] = ''
     context.user_data['src_house'] = ''
     context.user_data['service_id'] = city.service_id
+    context.user_data['extra_services'] = []
+    context.user_data['passengers_count'] = None
     return await _to_the_get_point_a(update, context)
 
 

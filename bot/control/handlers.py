@@ -110,6 +110,7 @@ order_handler = ConversationHandler(
             CallbackQueryHandler(order._to_the_get_point_b, pattern="change_point_b"),
             CallbackQueryHandler(order._to_the_get_pre_order_date, pattern="change_pre_order_time"),
             CallbackQueryHandler(order._to_the_select_passangers_count, pattern="change_passengers_count"),
+            CallbackQueryHandler(order.toggle_extra_service, pattern="^toggle_extra_service"),
             ],
         ORDER_PROCESS: [
             CallbackQueryHandler(order.order_process),

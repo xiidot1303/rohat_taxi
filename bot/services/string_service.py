@@ -9,6 +9,7 @@ from bot.resources.strings import Strings
 from bot.models import Bot_user
 from bot.resources.colors import colors_dict
 from datetime import datetime
+from bot.services.redis_service import get_user_lang
 
 
 def _words(
@@ -238,6 +239,7 @@ async def order_details_before_confirmation_string(
     distance,
     pre_order_datetime: datetime | None = None,
     passengers_count: int | None = None,
+    extra_services: list[dict] = [],
     *,
     update: Update | None = None,
     context: CustomContext | None = None,
@@ -261,6 +263,15 @@ async def order_details_before_confirmation_string(
         result += f"{words.pre_order_time}: {pre_order_datetime.strftime("%d.%m.%Y %H:%M")}\n"
     if passengers_count:
         result += f"{words.passengers_count}: {passengers_count}\n"
+    
+    user_lang_code = get_user_lang(context._user_id)
+    user_lang = ["uz", "ru"][user_lang_code]
+    for extra_service in extra_services:
+        title = extra_service[f"title_{user_lang}"]
+        result += f"▫️ {title} ✔️\n"
+    
+
+
     result += f"\n{words.confirm_order}"
     return result 
 

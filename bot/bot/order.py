@@ -3,7 +3,7 @@ from __future__ import annotations
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import ConversationHandler
 
-from app.models import Order, FavoriteAddress
+from app.models import Order, FavoriteAddress, ExtraService
 from app.services.address_service import get_street_by_pk
 from app.services.scat_service import (
     calculate_order_pre_cost_api,
@@ -203,6 +203,8 @@ async def _to_the_confirm_order(update: Update, context: CustomContext):
         pre_order_datetime: datetime = datetime.fromisoformat(pre_order_datetime_iso)
     else:
         pre_order_datetime = None
+    
+    selected_extra_services_ids = data.get("extra_services", [])
 
     price, distance, token = await calculate_order_pre_cost_api(
         bot_user.phone,
@@ -217,8 +219,18 @@ async def _to_the_confirm_order(update: Update, context: CustomContext):
         data.get("dst_lon"),
         data.get("dst_lat"),
         data.get("service_id"),
-        pre_order_datetime
+        pre_order_datetime,
+        extra_services=selected_extra_services_ids,
     )
+
+    extra_services = await sync_to_async(list)(
+        ExtraService.objects.filter(city__service_id=data.get("service_id")).values(
+            "title_uz", "title_ru", "price", "service_id"
+        )
+    )
+    selected_extra_services = await sync_to_async(list)(
+        ExtraService.objects.filter(service_id__in=selected_extra_services_ids).values("title_uz", "title_ru", "price")
+        )
     text = await order_details_before_confirmation_string(
         data.get("src_street", ""),
         data.get("src_house", ""),
@@ -228,13 +240,19 @@ async def _to_the_confirm_order(update: Update, context: CustomContext):
         distance,
         pre_order_datetime=pre_order_datetime,
         passengers_count=data.get("passengers_count"),
+        extra_services=selected_extra_services,
         context=context,
     )
-    markup = await confirm_order_keyboard(context=context, pre_order_datetime=pre_order_datetime)
-    message = await update_message_reply_text(update, text, markup)
+    markup = await confirm_order_keyboard(
+        context=context, pre_order_datetime=pre_order_datetime,
+        extra_services=extra_services, selected_extra_services_ids=selected_extra_services_ids
+    )
+    if update.callback_query:
+        message = await update.callback_query.edit_message_text(text, reply_markup=markup, parse_mode="HTML")
+    else:
+        message = await update_message_reply_text(update, text, markup)
     context.user_data["token"] = token
     await set_last_msg_and_markup(context, message, markup)
-    await delete_callback_query_message(update)
     return CONFIRM_ORDER
 
 
@@ -452,6 +470,19 @@ async def get_point_b_house(update: Update, context: CustomContext):
         return await _to_the_get_pre_order_date(update, context)
     else:
         return await _to_the_confirm_order(update, context)
+
+
+async def toggle_extra_service(update: Update, context: CustomContext):
+    query = update.callback_query
+    *args, service_id = str(query.data).split("-")
+    service_id = int(service_id)
+    extra_services: list[int] = context.user_data.get("extra_services", [])
+    if service_id in extra_services:
+        extra_services.remove(service_id)
+    else:
+        extra_services.append(service_id)
+    context.user_data["extra_services"] = extra_services
+    return await _to_the_confirm_order(update, context)
 
 
 async def order_process(update: Update, context: CustomContext):

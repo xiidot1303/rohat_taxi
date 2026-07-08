@@ -224,3 +224,10 @@ class FeedbackAdmin(ModelAdmin):
 class FavoriteAddressAdmin(ModelAdmin):
     list_display = ["id", "bot_user", "address", "lat", "lon"]
     search_fields = ["bot_user__name", "bot_user__phone", "address"]
+
+
+@admin.register(ExtraService)
+class ExtraServiceAdmin(ModelAdmin):
+    list_display = ["id", "city", "title_uz", "title_ru", "price"]
+    search_fields = ["title_uz", "title_ru", "price"]
+    list_filter = ["city"]

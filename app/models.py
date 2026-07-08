@@ -147,3 +147,19 @@ class FavoriteAddress(models.Model):
     class Meta:
         verbose_name = "Избранный адрес"
         verbose_name_plural = "Избранные адреса"
+
+
+class ExtraService(models.Model):
+    title_uz = models.CharField(max_length=255, null=True, blank=False, verbose_name='Название (UZ)')
+    title_ru = models.CharField(max_length=255, null=True, blank=False, verbose_name='Название (RU)')
+    service_id = models.IntegerField(null=True, blank=False, verbose_name='ID услуги в SCAT')
+    city = models.ForeignKey('app.City', null=True, blank=False, on_delete=models.CASCADE, verbose_name='Город')
+    price = models.CharField(null=True, blank=False, max_length=16, verbose_name='Цена')
+
+    class Meta:
+        verbose_name = "Дополнительная услуга"
+        verbose_name_plural = "Дополнительные услуги"
+        unique_together = ('service_id', 'city')
+
+    def __str__(self) -> str:
+        return self.title_ru

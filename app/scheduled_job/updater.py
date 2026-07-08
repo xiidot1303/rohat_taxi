@@ -1,7 +1,7 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from django_apscheduler.jobstores import register_events, DjangoJobStore
-from app.scheduled_job import address_job
+from app.scheduled_job import address_job, extra_services_job
 from bot.scheduled_job import mailing
 from bot.services.redis_service import save_langs_to_redis
 from asgiref.sync import async_to_sync
@@ -29,3 +29,4 @@ class jobs:
     scheduler.add_job(save_langs_to_redis, 'interval', minutes=20)
     scheduler.add_job(address_job.update_cities, 'interval', hours=1)
     scheduler.add_job(address_job.update_streets, 'interval', minutes=5)
+    scheduler.add_job(extra_services_job.update_extra_services, 'interval', hours=1)
