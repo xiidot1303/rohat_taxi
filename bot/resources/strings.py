@@ -188,8 +188,8 @@ class Strings:
     point_b = ["🏡 Qayerga", "🏡 Куда"]
 
     confirm_order = [
-        "☑️ Ma'lumotlar to'g'ri ekanini tekshiring va <u>Tasdiqlash ✅</u> tugamasini bosing", 
-        "☑️ Проверьте информации и нажмите кнопку <u>Подтвердить ✅</u>"
+        "☑️ Ma'lumotlarni tasdiqlang", 
+        "☑️ Подтвердите информацию"
         ]
 
     confirm = ["Tasdiqlash ✅", "Подтвердить ✅"]
@@ -426,7 +426,7 @@ class Strings:
     ]
 
     get_driver_location = [
-        "🗺 Haydovchi koordinatalarini olish",
+        "🗺 Haydovchi joylashuvi",
         "🗺 Получить координаты водителя"
     ]
 
