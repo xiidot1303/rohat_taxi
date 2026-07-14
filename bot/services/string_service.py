@@ -220,8 +220,7 @@ async def select_point_b_string(
     words = _words(update=update, context=context)
     return (
         f"<b>{words.point_a}</b>: {street} {house}\n\n"
-        f"{words.select_point_b}\n\n"
-        f"{words.select_address_or_location}"
+        f"{words.select_point_b}"
     )
 
 

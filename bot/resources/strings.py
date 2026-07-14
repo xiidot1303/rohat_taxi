@@ -165,7 +165,7 @@ class Strings:
     # ]
 
     select_address_or_location = [
-        "<b>🚖 Yetkazib berish manzilini tanlang</b>",
+        "<b>🚖 Jo'nab manzilini tanlang</b>",
         "<b>🚖 Выберите адрес подачи</b>"
     ]
 
@@ -175,7 +175,7 @@ class Strings:
 
     select_point_a = ["<b>🔎</b>", "<b>🔎</b>"]
 
-    select_point_b = ["<b>Borish manzilingizni kiriting 🅱️</b>", "<b>Выберите точку поездки 🅱️</b>"]
+    select_point_b = ["<b>🅱️ Borish manzilingizni kiriting</b>", "<b>🅱️ Выберите точку поездки</b>"]
 
     city = ["Shahar", "Город"]
 
@@ -192,7 +192,7 @@ class Strings:
         "☑️ Подтвердите информацию"
         ]
 
-    confirm = ["Tasdiqlash ✅", "Подтвердить ✅"]
+    confirm = ["✅ Tasdiqlash", "✅ Подтвердить"]
 
     skip = ["O'tkazib yuborish", "Пропустить"]
 
