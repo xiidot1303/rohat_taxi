@@ -117,7 +117,7 @@ def _language_buttons(
 
 
 async def _city_titles() -> list[str]:
-    return [city.title async for city in City.objects.order_by("title")]
+    return [city.title async for city in City.objects.filter(is_active=True).order_by("title")]
 
 
 async def _city_by_title(title: str) -> City | None:
