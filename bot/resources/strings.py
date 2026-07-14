@@ -22,10 +22,10 @@ class Strings:
     )
     added_group = "Чат успешно добавлена ✅"
     uz_ru = ["UZ 🇺🇿", "RU 🇷🇺"]
-    main_menu = ["Asosiy menyu 🏠", "Главное меню 🏠"]
+    main_menu = ["🏠 Asosiy menyu", "🏠 Главное меню"]
     change_lang = [
-        "\U0001F1FA\U0001F1FF Tilni o'zgartirish \U0001F1F7\U0001F1FA",
-        "\U0001F1FA\U0001F1FF Сменить язык \U0001F1F7\U0001F1FA",
+        "\U0001F1FA\U0001F1FF \U0001F1F7\U0001F1FA Tilni o'zgartirish",
+        "\U0001F1FA\U0001F1FF \U0001F1F7\U0001F1FA Сменить язык",
     ]
     select_lang = [""" Tilni tanlang """, """Выберите язык бота """]
     type_name = ["""Ismingizni kiriting """, """Введите ваше имя """]
@@ -45,10 +45,10 @@ class Strings:
         """Смена языка 🇺🇿🇷🇺""",
     ]
     change_phone_number = [
-        """Telefon raqamni o\'zgartirish 📞""",
-        """Смена номера телефона 📞""",
+        """📞 Telefon raqamni o\'zgartirish""",
+        """📞 Смена номера телефона""",
     ]
-    change_name = ["""Ismni o\'zgartirish 👤""", """Смени имени 👤"""]
+    change_name = ["""👤 Ismni o\'zgartirish""", """👤 Смени имени"""]
     settings_desc = ["""Sozlamalar ⚙️""", """Настройки ⚙️"""]
     your_phone_number = [
         """📌 Sizning telefon raqamingiz: [] 📌""",
@@ -297,8 +297,8 @@ class Strings:
         ]
 
     change_city = [
-        "Shaharni o'zgartirish 🏙", 
-        "Изменить город 🏙"
+        "🏙 Shaharni o'zgartirish", 
+        "🏙 Изменить город"
         ]
 
     change_favorite_addresses = [
@@ -307,8 +307,8 @@ class Strings:
         ]
 
     favorite_addresses = [
-        "Sevimli manzillar ⭐",
-        "Избранные адреса ⭐"
+        "⭐ Sevimli manzillar",
+        "⭐ Избранные адреса"
         ]
 
     favorite_address_add = [
