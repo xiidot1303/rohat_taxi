@@ -411,8 +411,8 @@ class Strings:
     ]
 
     service_is_not_selected = [
-        "Siz hali xizmatni tanlamadingiz. Buyurtma berish uchun sozlamalar orqali xizmatni tanlang.",
-        "Вы еще не выбрали услугу. Пожалуйста, выберите услугу в настройках, чтобы оформить заказ."
+        "Siz hali shaharni tanlamadingiz. Buyurtma berish uchun sozlamalar orqali shaharni tanlang.",
+        "Вы еще не выбрали город. Пожалуйста, выберите город в настройках, чтобы оформить заказ."
     ]
 
     pre_order_time = [
