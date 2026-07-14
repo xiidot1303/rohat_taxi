@@ -165,21 +165,15 @@ class Strings:
     # ]
 
     select_address_or_location = [
-        "<b>📍 Lokatsiya yuborish</b> tugmasi orqali joriy joylashuvingizni yuboring.\n" \
-            "<b>🟢 Manzil tanlash 🔎 - </b>Ro'yxat ichidan kerakli manzilni tanlang\n" \
-                "🔵 Yoki sevimli manzillaringiz orasidan birini tanlang. " \
-                    "<i>(Sevimli manzillarni sozlamalar bo'limi orqali boshqarishingiz mumkin)</i>", 
-        "<b>📍 Отправить местоположение</b> - Отправьте свое текущее местоположение.\n" \
-            "<b>🟢 Выбрать адрес 🔎 - </b>Выберите адрес из списка\n" \
-                "🔵 Или выберите один из ваших избранных адресов. " \
-                    "<i>(Вы можете управлять своими избранными адресами в разделе настроек)</i>"
+        "<b>🚖 Yetkazib berish manzilini tanlang</b>",
+        "<b>🚖 Выберите адрес подачи</b>"
     ]
 
     search_addresses = ["Manzil tanlash 🔎", "Выбрать адрес 🔎"]
 
     send_location = ["📍 Lokatsiya yuborish", "📍 Отправить местоположение"]
 
-    select_point_a = ["<b>Manzilingizni kiriting 📌</b>", "<b>Выберите свой адрес из списка 📌</b>"]
+    select_point_a = ["<b>🔎</b>", "<b>🔎</b>"]
 
     select_point_b = ["<b>Borish manzilingizni kiriting 🅱️</b>", "<b>Выберите точку поездки 🅱️</b>"]
 
