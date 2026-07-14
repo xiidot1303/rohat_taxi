@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, m2m_changed
 from django.dispatch import receiver
 from bot.models import Bot_user, Message
 from bot.services.redis_service import set_user_lang
@@ -32,12 +32,12 @@ def handle_lang_change(sender, instance: Bot_user, **kwargs):
             pass
 
 
-@receiver(post_save, sender=Message)
-def send_message_to_users(sender, instance: Message, created, **kwargs):
+@receiver(m2m_changed, sender=Message.bot_users.through)
+def send_message_to_users(sender, instance: Message, action, pk_set, **kwargs):
     """
     Send a message to all users when a new message is created.
     """
-    if created:
+    if action == 'post_add' and pk_set:
         users = instance.bot_users.all()
         if not users:
             users = Bot_user.objects.all()
