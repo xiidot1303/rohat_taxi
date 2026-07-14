@@ -20,6 +20,7 @@ class MesageAdmin(ModelAdmin):
         }),
 
     )
+    autocomplete_fields = ['bot_users']
     
     def bot_users_name(self, obj):
         result = ''
