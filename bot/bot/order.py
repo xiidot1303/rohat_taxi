@@ -130,9 +130,10 @@ async def _to_the_get_point_b(update: Update, context: CustomContext):
         favorite_addresses_list=favorite_addresses_list,
         add_skip_button=False if context.user_data.get("is_intercity") else True
     )
-
-    message = await update_message_reply_text(update, text, markup)
-    await delete_callback_query_message(update)
+    if query := update.callback_query:
+        message = await query.edit_message_text(text, reply_markup=markup, parse_mode="HTML")
+    else:
+        message = await update_message_reply_text(update, text, markup)
     await set_last_msg_and_markup(context, message, markup)
     # set empty dst
     context.user_data.update(
@@ -289,7 +290,6 @@ async def get_point_a(update: Update, context: CustomContext):
     message = update.effective_message
 
     if query := update.callback_query:
-        await query.delete_message()
         await set_last_msg_and_markup(context, None, None)
         *args, lat, lon = str(query.data).split("-")
         src, src_lat, src_lon = "location", lat, lon
@@ -352,7 +352,7 @@ async def get_point_a(update: Update, context: CustomContext):
 
 async def get_point_a_house(update: Update, context: CustomContext):
     if query := update.callback_query:
-        await query.delete_message()
+        pass
     else:
         message_text = _message_text(update)
         context.user_data["src_house"] = message_text
@@ -460,7 +460,7 @@ async def get_point_b(update: Update, context: CustomContext):
 
 async def get_point_b_house(update: Update, context: CustomContext):
     if query := update.callback_query:
-        await query.delete_message()
+        pass
     else:
         message_text = _message_text(update)
         context.user_data["dst_house"] = message_text
