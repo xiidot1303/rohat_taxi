@@ -138,6 +138,9 @@ def send_order_status(phone, data):
         if status_code == 80:
             text = Strings(user_id=user.user_id).your_order_is_in_moderation
 
+        elif status_code == 50:
+            text = Strings(user_id=user.user_id).created_pre_order_order
+
         elif status_code == 95:
             text = Strings(user_id=user.user_id).your_order_is_cancelled
             markup = [
@@ -148,7 +151,7 @@ def send_order_status(phone, data):
                     }
                 ]
             ]
-        elif status_code == 10:
+        elif status_code == 10 or status_code == 51:
             text = string_service.car_info_string(
                 user.user_id,
                 data["remaining"],

@@ -455,6 +455,16 @@ class Strings:
         "👥 Количество пассажиров"
     ]
 
+    created_pre_order_order = [
+        "Toshkent ↔️ Bekobod yo'nalishida sizga buyurtma yaratildi.",
+        "Для вас создано бронирование на маршруте Ташкент ↔️ Бекабад."
+    ]
+
+    _ = [
+        "",
+        ""
+    ]
+
     _ = [
         "",
         ""

@@ -21,7 +21,7 @@ def cheque_info(request):
             uuid = instance.uuid
             order_id = data['id']
             # check status and send message
-            if data['status_code'] in ['80', '95', '10', '11', '4', '1']:
+            if data['status_code'] in ['80', '95', '10', '11', '4', '1', '50', '51']:
                 if uuid:
                     change_order_status_by_uuid(uuid, order_id, data['status_code'])
                 else:
