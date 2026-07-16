@@ -165,7 +165,7 @@ class Strings:
     # ]
 
     select_address_or_location = [
-        "<b>🚖 Jo'nab manzilini tanlang</b>",
+        "<b>🚖 Jo'nab ketish manzilini tanlang</b>",
         "<b>🚖 Выберите адрес подачи</b>"
     ]
 
