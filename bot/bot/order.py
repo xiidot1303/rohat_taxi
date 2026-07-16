@@ -428,10 +428,10 @@ async def get_point_b(update: Update, context: CustomContext):
                 if not order:
                     await bot_delete_message(update, context)
                     return GET_POINT_B
-                dst_street = order.dst_street
-                dst_house = order.dst_house
-                dst_lat = order.dst_lat
-                dst_lon = order.dst_lon
+                dst_street = order.src_street
+                dst_house = order.src_house
+                dst_lat = order.src_lat
+                dst_lon = order.src_lon
                 dst = "location" if dst_lat and dst_lon else "address"
             else:
                 street_title, street_id = _message_text_and_street_id(update)
