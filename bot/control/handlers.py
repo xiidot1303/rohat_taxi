@@ -31,7 +31,7 @@ login_handler = ConversationHandler(
     ],
     name="login",
     persistent=True,
-
+    block=False
 )
 
 
@@ -63,7 +63,7 @@ settings_handler = ConversationHandler(
     ],
     name="settings",
     persistent=True,
-  
+    block=False
 )
 
 order_handler = ConversationHandler(
@@ -124,6 +124,7 @@ order_handler = ConversationHandler(
     ],
     name='order',
     persistent=True,
+    block=False
 )
 
 feedback_handler = ConversationHandler(
@@ -139,12 +140,13 @@ feedback_handler = ConversationHandler(
     ],
     name='feedback',
     persistent=True,
+    block=False
 )
 
-get_rating_handler = CallbackQueryHandler(rating.get_rating, pattern="^rating")
-continue_rating_handler = CallbackQueryHandler(rating.continue_rating, pattern="^continue_rating")
-select_rating_reason_handler = CallbackQueryHandler(rating.select_rating_reason, pattern="^select_rating_reason")
-driver_location_handler = CallbackQueryHandler(driver_location.get_driver_location, pattern="^get_driver_location")
+get_rating_handler = CallbackQueryHandler(rating.get_rating, pattern="^rating", block=False)
+continue_rating_handler = CallbackQueryHandler(rating.continue_rating, pattern="^continue_rating", block=False)
+select_rating_reason_handler = CallbackQueryHandler(rating.select_rating_reason, pattern="^select_rating_reason", block=False)
+driver_location_handler = CallbackQueryHandler(driver_location.get_driver_location, pattern="^get_driver_location", block=False)
 
 handlers = [
     login_handler,
@@ -155,6 +157,6 @@ handlers = [
     select_rating_reason_handler,
     driver_location_handler,
     feedback_handler,
-    InlineQueryHandler(search.get_inline_query),
-    TypeHandler(type=NewsletterUpdate, callback=main.newsletter_update)
+    InlineQueryHandler(search.get_inline_query, block=False),
+    TypeHandler(type=NewsletterUpdate, callback=main.newsletter_update, block=False)
 ]
