@@ -253,6 +253,7 @@ async def _to_the_confirm_order(update: Update, context: CustomContext):
     else:
         message = await update_message_reply_text(update, text, markup)
     context.user_data["token"] = token
+    context.user_data["go_to_confirming_order"] = True
     await set_last_msg_and_markup(context, message, markup)
     return CONFIRM_ORDER
 
@@ -340,7 +341,9 @@ async def get_point_a(update: Update, context: CustomContext):
         }
     )
     if src == "location":
-        if context.user_data.get("ask_point_b"):
+        if context.user_data.get("go_to_confirming_order"):
+            return await _to_the_confirm_order(update, context)
+        elif context.user_data.get("ask_point_b"):
             return await _to_the_get_point_b(update, context)
         elif context.user_data.get("is_intercity"):
             return await _to_the_get_pre_order_date(update, context)
@@ -358,7 +361,9 @@ async def get_point_a_house(update: Update, context: CustomContext):
         context.user_data["src_house"] = message_text
         await remove_inline_keyboards_from_last_msg(update, context)
 
-    if context.user_data.get("ask_point_b"):
+    if context.user_data.get("go_to_confirming_order"):
+        return await _to_the_confirm_order(update, context)
+    elif context.user_data.get("ask_point_b"):
         return await _to_the_get_point_b(update, context)
     elif context.user_data.get("is_intercity"):
         return await _to_the_get_pre_order_date(update, context)
@@ -386,6 +391,8 @@ async def get_pre_order_time(update: Update, context: CustomContext):
     pre_order_datetime: datetime = datetime.combine(pre_order_date, pre_order_time)
     context.user_data['pre_order_datetime_iso'] = pre_order_datetime.isoformat()
     await remove_inline_keyboards_from_last_msg(update, context)
+    if context.user_data.get("go_to_confirming_order"):
+        return await _to_the_confirm_order(update, context)
     return await _to_the_select_passangers_count(update, context)
 
 
@@ -450,7 +457,9 @@ async def get_point_b(update: Update, context: CustomContext):
         },
     )
     if dst == "location":
-        if context.user_data.get("is_intercity"):
+        if context.user_data.get("go_to_confirming_order"):
+            return await _to_the_confirm_order(update, context)
+        elif context.user_data.get("is_intercity"):
             return await _to_the_get_pre_order_date(update, context)
         else:
             return await _to_the_confirm_order(update, context)
@@ -466,7 +475,9 @@ async def get_point_b_house(update: Update, context: CustomContext):
         context.user_data["dst_house"] = message_text
         await remove_inline_keyboards_from_last_msg(update, context)
 
-    if context.user_data.get("is_intercity"):
+    if context.user_data.get("go_to_confirming_order"):
+        return await _to_the_confirm_order(update, context)
+    elif context.user_data.get("is_intercity"):
         return await _to_the_get_pre_order_date(update, context)
     else:
         return await _to_the_confirm_order(update, context)
