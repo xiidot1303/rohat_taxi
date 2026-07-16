@@ -95,15 +95,6 @@ def send_cheque(phone, cheque_id: int):
             model,
         )
         markup = []
-        if order_obj:
-            markup = [
-                [
-                    {
-                        "text": Strings(user_id=user.user_id).main_menu,
-                        "callback_data": "main_menu",
-                    }
-                ]
-            ]
         markup.append([
             {
                 "text": "⭐️",
@@ -122,6 +113,15 @@ def send_cheque(phone, cheque_id: int):
                 }
             ]
         )
+        if order_obj:
+            markup.append(
+                [
+                    {
+                        "text": Strings(user_id=user.user_id).main_menu,
+                        "callback_data": "main_menu",
+                    }
+                ]
+            )
         send_newsletter_api(user.user_id, text, inline_buttons=markup)
         return True
     else:

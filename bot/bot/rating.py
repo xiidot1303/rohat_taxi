@@ -15,16 +15,9 @@ async def _compleation(update: Update, cheque_id, rating, reason_id=None):
     _words = Strings(user_id=update.effective_user.id)
 
     text = _words.rating_compleation
-    await update.callback_query.answer(text)
+    await update.callback_query.answer(text, show_alert=True)
 
     buttons = []
-    if order := await Order.objects.filter(order_id = cheque_id).afirst():
-        buttons = [[
-            InlineKeyboardButton(
-                text=_words.main_menu,
-                callback_data="main_menu"
-            )
-        ]]
 
     user_lang_code = get_user_lang(update.effective_user.id)
     user_lang = "uz" if user_lang_code == 0 else "ru"
@@ -34,13 +27,19 @@ async def _compleation(update: Update, cheque_id, rating, reason_id=None):
             web_app=WebAppInfo(url=f"{WEBAPP_URL}/feedback/{cheque_id}/{user_lang}")
         )
     ])
+    if order := await Order.objects.filter(order_id = cheque_id).afirst():
+        buttons.append([
+            InlineKeyboardButton(
+                text=_words.main_menu,
+                callback_data="main_menu"
+            )
+        ])
     markup = InlineKeyboardMarkup(buttons)
     
     old_text = update.effective_message.text
     text = old_text.replace(_words.select_reason_of_rating, "")
     text = text.replace(_words.leave_your_feedback, "")
     await update.callback_query.edit_message_text(text=text, reply_markup=markup)
-    await update.callback_query.answer(_words.rating_compleation)
 
 
 async def get_rating(update: Update, context: CustomContext):
@@ -62,7 +61,7 @@ async def get_rating(update: Update, context: CustomContext):
     buttons.append(
         [
             InlineKeyboardButton(
-                text=context.words.continue_,
+                text=context.words.confirm,
                 callback_data=f"continue_rating-{cheque_id}-{rating}",
             )
         ]
@@ -113,7 +112,7 @@ async def continue_rating(update: Update, context: CustomContext):
     old_text = update.effective_message.text
     text = old_text.replace(context.words.leave_your_feedback, context.words.select_reason_of_rating)
     await query.edit_message_text(text, reply_markup=markup)
-    await query.answer(context.words.select_reason_of_rating, show_alert=True)
+    # await query.answer(context.words.select_reason_of_rating, show_alert=True)
 
 
 async def select_rating_reason(update: Update, context: CustomContext):
